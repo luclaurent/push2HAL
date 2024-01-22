@@ -1,5 +1,17 @@
 #!/usr/bin/env python
 
+
+####*****************************************************************************************
+####*****************************************************************************************
+####*****************************************************************************************
+#### Tools to upload PDF file on HAL based on title (read on the pdf file)
+#### Copyright - 2024 - Luc Laurent (luc.laurent@lecnam.net)
+####
+#### syntax: ./pdf2hal.py <pdf_file>
+####*****************************************************************************************
+####*****************************************************************************************
+
+
 import sys,os,shutil
 import json
 import tempfile
@@ -54,6 +66,11 @@ def load_credentials(args):
         Logger.debug('Load credentials from arguments')
         cred['login']=args.login
         cred['passwd']=args.passwd
+    elif args.credentials:
+        Logger.debug('Load credentials from file {}'.format(args.credentials))
+        if os.path.isfile(args.credentials):
+            with open(args.credentials) as f:
+                cred = json.load(f)
     else:
         Logger.debug('Load credentials from file')
         if os.path.isfile(DEFAULT_CREDENTIALS_FILE):
@@ -232,23 +249,33 @@ def extract_info(pdf_path):
     return title
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='PDF2HAL - Extract title and author from a PDF file.')
+    parser = argparse.ArgumentParser(description='PDF2HAL - Upload PDF fil to HAL using title from the file.')
     parser.add_argument('pdf_path', help='Path to the PDF file')
     parser.add_argument('-c','--credentials', help='Path to the credentials file')
     parser.add_argument('-v','--verbose', help='Show all logs',action='store_true')
-    parser.add_argument('-n','--dry-run', help='Execute on hal-preprod',action='store_true')
+    parser.add_argument('-e','--prod', help='Execute on prod server',action='store_true')
     parser.add_argument('-l','--login', help='Username for API (HAL)')
     parser.add_argument('-p','--passwd', help='Password for API (HAL)')
     parser.add_argument('-f','--force', help='Force for no interaction',action='store_true')
-    sys.argv = ['pdf2hal.py', 'jean2012.pdf', '-v', '-f']
+
     args = parser.parse_args()
     
     # activate verbose mode
     if args.verbose:
         Logger.setLevel(logging.DEBUG)
-    
+        
     Logger.info('Run PDF2HAL')
     Logger.info('')
+    
+    # activate production mode
+    serverType='preprod'
+    if args.prod:
+        Logger.info('Execution mode: use production server (USE WITH CAUTION))')
+        serverType='prod'
+    else:
+        Logger.info('Dryrun mode: use preprod server')
+    
+    
     #
     pdf_path = args.pdf_path
     Logger.debug('PDF file: {}'.format(pdf_path))
@@ -306,27 +333,10 @@ if __name__ == "__main__":
             credentials = load_credentials(args)
             
             # upload to HAL
-            upload2HAL(file,payload,credentials)
+            upload2HAL(file,payload,credentials,server=serverType)
+        else:
+            Logger.error("Failed to download TEI file.")
         
-    #     # load credentials from file or from arguments
-    #     credentials = load_credentials(args)
+    else:
+        print("No result selected.")
 
-    #     # Load credentials from file if provided
-    #     if args.credentials:
-    #         credentials = load_credentials(args.credentials)
-    #         ARCHIVES_SWORD_API_URL, ARCHIVES_SWORD_API_USERNAME, ARCHIVES_SWORD_API_PASSWORD = credentials
-
-        
-
-
-    #                 # Upload both PDF and TEI files using archives-ouvertes.fr SWORD API
-    #                 deposit_to_archives_sword_api(pdf_path, tei_content)
-    #             else:
-    #                 print("Failed to download TEI file.")
-    #         else:
-    #             print("No result selected.")
-    #     else:
-    #         print("No results found in archives-ouvertes.fr.")
-
-    # else:
-    #     print("Title or author information not found in the PDF.")
