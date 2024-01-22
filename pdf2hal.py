@@ -103,20 +103,24 @@ def choose_from_results(results, forceSelection=False):
         Logger.info("[{}/{}]. {} - {}".format(i + 1,len(results),result.get('label_s', 'N/A'),result.get('halId_s', 'N/A')))
 
     Logger.info("Select a number to view details (0 to skip or m for manual definition): ")
-    if forceSelection:
-        choice = '1'
-    else:
-        choice = input(' > ')
-
-    if choice.isdigit() and 0 <= int(choice) <= len(results):
-        selected_result = results[int(choice) - 1]
-        return selected_result
-    elif choice == 'm':
-        Logger.info('Provide title manually')
-        manualTitle = input(' > ')
-        return manualTitle
-    else:
-        Logger.warning("Invalid choice. Skipping.")
+    
+    choiceOK = False
+    while not choiceOK:
+        if forceSelection:
+            choice = '1'
+            choiceOK = True
+        else:
+            choice = input(' > ')
+            
+        if choice.isdigit() and 0 <= int(choice) <= len(results):
+            selected_result = results[int(choice) - 1]
+            return selected_result
+        elif choice == 'm':
+            Logger.info('Provide title manually')
+            manualTitle = input(' > ')
+            return manualTitle
+        else:
+            Logger.warning("Invalid choice.")
 
     return None
 

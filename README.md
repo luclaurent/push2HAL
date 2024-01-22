@@ -24,3 +24,7 @@ Note that:
     
 - credentials could be provided using `.apihal` based on json syntax (see `.apihal_example)
 - by default the preprod server is used
+
+## Requirements:
+
+PDF2HAL requires external modules. They can be installed using `pip install -r requirements`
