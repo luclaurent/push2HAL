@@ -243,8 +243,13 @@ def upload2HAL(file,headers,credentials,server='preprod'):
     if res.status_code == 201:
         Logger.info("Successfully upload to HAL.")
     else:
-        Logger.warning('Error: {}'.format(res.text))
+        #read error message
+        xmlResponse = etree.fromstring(res.text.encode('utf-8'))
+        elem = xmlResponse.findall('sword:verboseDescription',xmlResponse.nsmap)
         Logger.error("Failed to upload. Status code: {}".format(res.status_code))
+        if len(elem)>0:
+            for i in elem:
+                Logger.warning('Error: {}'.format(i.text))
 
 
 def extract_info(pdf_path):
@@ -255,13 +260,14 @@ def extract_info(pdf_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='PDF2HAL - Upload PDF fil to HAL using title from the file.')
     parser.add_argument('pdf_path', help='Path to the PDF file')
+    parser.add_argument('-a','--halid', help='HALid of document to update')
     parser.add_argument('-c','--credentials', help='Path to the credentials file')
     parser.add_argument('-v','--verbose', help='Show all logs',action='store_true')
     parser.add_argument('-e','--prod', help='Execute on prod server',action='store_true')
     parser.add_argument('-l','--login', help='Username for API (HAL)')
     parser.add_argument('-p','--passwd', help='Password for API (HAL)')
     parser.add_argument('-f','--force', help='Force for no interaction',action='store_true')
-
+    sys.argv = ['pdf2hal.py', 'allix1989.pdf', '-f', '-v']
     args = parser.parse_args()
     
     # activate verbose mode

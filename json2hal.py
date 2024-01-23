@@ -2,8 +2,8 @@ from lxml import etree
 import re
 import logging
 
-FORMAT = '%(asctime)s %(clientip)-15s %(user)-8s %(message)s'
-logging.basicConfig(format=FORMAT)
+FORMAT = '%(asctime)s  %(message)s'
+logging.basicConfig(format=FORMAT, level=logging.INFO)
 Logger = logging.getLogger('json2hal')
 
 
