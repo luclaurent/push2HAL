@@ -148,7 +148,7 @@ if __name__ == "__main__":
     parser.add_argument('-l','--login', help='Username for API (HAL)')
     parser.add_argument('-p','--passwd', help='Password for API (HAL)')
     parser.add_argument('-f','--force', help='Force for no interaction',action='store_true')
-    sys.argv = ['pdf2hal.py', 'allix1989.pdf', '-v']#, '-a', 'hal-04215255']
+    # sys.argv = ['pdf2hal.py', 'allix1989.pdf', '-v']#, '-a', 'hal-04215255']
     args = parser.parse_args()
     
     # run main function
