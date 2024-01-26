@@ -18,6 +18,7 @@ DEFAULT_UPLOAD_FILE_NAME_PDF='{}.pdf' #'upload.pdf'
 DEFAULT_UPLOAD_FILE_NAME_XML='upload.xml'
 DEFAULT_UPLOAD_FILE_NAME_ZIP='upload'
 DEFAULT_MAX_NUMBER_RESULTS=5 # results to display when searching in archives-ouvertes.fr
+DEFAULT_MAX_NUMBER_RESULTS_QUERY=50 # results to query when searching in archives-ouvertes.fr
 
 DEFAULT_XML_SWORD_PACKAGING='http://purl.org/net/sword-types/AOfr'
 DEFAULT_NAMESPACE_XML={'tei': 'http://www.tei-c.org/ns/1.0'}

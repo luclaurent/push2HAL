@@ -23,22 +23,39 @@ import misc as m
 Logger = logging.getLogger('pdf2hal')
 
 
-def search_title_in_archives(pdf_title):
+def getDataFromHAL(title=None, 
+                   DOCid=None, 
+                   typeR='json',
+                   returnFields='title_s,author_s,halId_s,label_s,docid'):
     """Search for a title in HAL archives"""
-    Logger.debug(f"Searching for title: {pdf_title}")
+    if title:  
+        Logger.debug("Searching for title: {}".format(title.lower()))
+        query = 'title_t:{}'.format(title.lower())
+    elif DOCid:
+        Logger.debug("Searching for document's ID: {}".format(DOCid))
+        query = 'halId_s:{}'.format(DOCid)
+    #
+    Logger.debug("Return format: {}".format(typeR))
+    
     params = {
-        'q': f'title_t:"{pdf_title}"',
-        'fl': 'title_s,author_s,halId_s,label_s,docid',
-        'wt': 'json',
-        'rows': 5,  # Adjust the number of rows based on your preference
+        'q': query,
+        'fl': returnFields,
+        'wt': typeR,
+        'rows': dflt.DEFAULT_MAX_NUMBER_RESULTS_QUERY,  # Adjust the number of rows based on your preference
     }
     # request and get response
     response = requests.get(dflt.ARCHIVES_API_URL, params=params)
 
     if response.status_code == 200:
-        data = response.json().get('response', {}).get('docs', [])
+        if typeR == 'json':
+            data = response.json().get('response', {}).get('docs', [])
+        elif typeR == 'xml-tei':
+            data = response.text
+            #declare namespace
+            key, value = list(dflt.DEFAULT_NAMESPACE_XML.items())[0]
+            etree.register_namespace(key, value)
+            return etree.fromstring(data.encode('utf-8'))
         return data
-
     return []
 
 
@@ -47,14 +64,19 @@ def choose_from_results(results, forceSelection=False,
     """ Select result from a list of results"""
     Logger.info(dflt.TXT_SEP)
     Logger.info("Multiple results found:")
+    # lambda show info
+    funShow=lambda x,y: "[{}/{}]. {} - {}".format(x + 1,len(results),y.get('label_s', 'N/A'),result.get('halId_s', 'N/A'))
+    #
+    lastposition=0
     for i, result in enumerate(results):
         # print only the first maxNumber results
         if i < maxNumber:
-            Logger.info("[{}/{}]. {} - {}".format(i + 1,len(results),result.get('label_s', 'N/A'),result.get('halId_s', 'N/A')))
+            Logger.info(funShow(i,result))
+            lastposition=i
         else:
             break
 
-    Logger.info("Select a number to view details (0 to skip or m for manual definition): ")
+    Logger.info("Select a number to view details (0 to skip or p/n for previous/next selection or m for manual definition): ")
     
     choiceOK = False
     while not choiceOK:
@@ -71,29 +93,26 @@ def choose_from_results(results, forceSelection=False,
             Logger.info('Provide title manually')
             manualTitle = input(' > ')
             return manualTitle
+        elif choice == 'p':
+            Logger.info('Previous selection')
+            if lastposition-1>=0:
+                lastposition-=1                
+            else:
+                Logger.warning("No previous selection.")
+            Logger.info(funShow(lastposition,results[lastposition]))
+        elif choice == 'n':
+            Logger.info('Next selection')
+            if lastposition+1<len(results):
+                lastposition+=1
+            else:
+                Logger.warning("No next selection.")
+            Logger.info(funShow(lastposition,results[lastposition]))
         else:
             Logger.warning("Invalid choice.")
 
     return None
 
-def download_tei_file(hal_id):
-    """ Download TEI-XML file from HAL"""
-    Logger.debug(f"Downloading TEI file for halId: {hal_id}")
-    params = {
-        'q': f'halId_s:"{hal_id}"',
-        'wt': 'xml-tei'
-    }
-    # request and get response
-    response = requests.get(dflt.ARCHIVES_API_URL, params=params)
 
-    if response.status_code == 200:
-        data = response.text
-        #declare namespace
-        key, value = list(dflt.DEFAULT_NAMESPACE_XML.items())[0]
-        etree.register_namespace(key, value)
-        return etree.fromstring(data.encode('utf-8'))
-
-    return []
 
 
 def addFileInXML(inTree,filePath,hal_id):
@@ -160,23 +179,23 @@ def preparePayload(tei_content,
     #create header
     header = dict()
     # default:
-    header['Content-Disposition'] = None
-    header['On-Behalf-Of'] = options.get('idFrom',None)
-    header['Export-To-Arxiv'] = False
-    header['Export-To-PMC'] = False
-    header['Hide-For-RePEc'] = False
-    header['Hide-In-OAI'] = False
-    header['X-Allow-Completion'] = options.get('allowCompletion',False)
-    header['Packaging'] = options.get('allowCompletion',dflt.DEFAULT_XML_SWORD_PACKAGING)
+    header['Content-Disposition'] = m.adaptH(None)
+    # header['On-Behalf-Of'] = m.adaptH(options.get('idFrom',None))
+    header['Export-To-Arxiv'] = m.adaptH(False)
+    header['Export-To-PMC'] = m.adaptH(False)
+    header['Hide-For-RePEc'] = m.adaptH(False)
+    header['Hide-In-OAI'] = m.adaptH(False)
+    header['X-Allow-Completion'] = m.adaptH(options.get('allowCompletion',False))
+    header['Packaging'] =  m.adaptH(options.get('allowCompletion',dflt.DEFAULT_XML_SWORD_PACKAGING))
     if pdf_path:
-        header['Content-Type'] = 'application/zip'
-        header['Export-To-Arxiv'] = options.get('export2arxiv',header['Export-To-Arxiv'])
-        header['Export-To-PMC'] = options.get('export2pmc',header['Export-To-PMC'])
-        header['Hide-For-RePEc'] = options.get('hide4repec',header['Hide-For-RePEc'])
-        header['Hide-In-OAI'] = options.get('hide4oai',header['Hide-In-OAI'])
-        header['Content-Disposition']= 'attachment; filename="{}"'.format(xml_file_path)
+        header['Content-Type'] = m.adaptH('application/zip')
+        header['Export-To-Arxiv'] = m.adaptH(options.get('export2arxiv',header['Export-To-Arxiv']))
+        header['Export-To-PMC'] = m.adaptH(options.get('export2pmc',header['Export-To-PMC']))
+        header['Hide-For-RePEc'] = m.adaptH(options.get('hide4repec',header['Hide-For-RePEc']))
+        header['Hide-In-OAI'] = m.adaptH(options.get('hide4oai',header['Hide-In-OAI']))
+        header['Content-Disposition']= m.adaptH('attachment; filename="{}"'.format(xml_file_path))
     else:
-        header['Content-Type'] = 'text/xml'
+        header['Content-Type'] = m.adaptH('text/xml')
     
     return zipfile, header
 

@@ -10,6 +10,8 @@
 
 
 import logging
+import curses
+import time
 import os
 import json
 import fitz
@@ -18,6 +20,19 @@ from lxml import etree
 from pdftitle import get_title_from_file as titleFromPdf
 
 Logger = logging.getLogger('pdf2hal')
+
+def input_char(message):
+    try:
+        win = curses.initscr()
+        win.addstr(0, 0, message)
+        while True: 
+            ch = win.getch()
+            if ch in range(32, 127): 
+                break
+            time.sleep(0.05)
+    finally:
+        curses.endwin()
+    return chr(ch)
 
 def showPDFcontent(pdf_path, number=dflt.DEFAULT_NB_CHAR):
     """ Open and read pdf file and show first characters"""
@@ -44,10 +59,10 @@ def showPDFcontent(pdf_path, number=dflt.DEFAULT_NB_CHAR):
 def load_credentials(args):
     """ Load credentials from different sources"""
     cred = dict()
-    if args.hash:
-        Logger.debug('Load credentials from hash')
-        cred['hash']=args.hash
-    elif args.login and args.passwd:
+    # if args.hash:
+    #     Logger.debug('Load credentials from hash')
+    #     cred['hash']=args.hash
+    if args.login and args.passwd:
         Logger.debug('Load credentials from arguments')
         cred['login']=args.login
         cred['passwd']=args.passwd
@@ -63,6 +78,22 @@ def load_credentials(args):
                 cred = json.load(f)
                 
     return cred
+
+def checkTitle(title):
+    """ Check if title is correct"""
+    titleOk = False
+    while not titleOk:
+        if title:
+            Logger.info(f'Title: {title}? ([y]/n)')
+            choice = input(' > ')
+            if choice == '':
+                choice = 'y'
+            if choice.lower() == 'y':
+                titleOk = True
+        if not titleOk:
+            Logger.info('Provide title manually')
+            title = input(' > ')
+    return title
 
 def writeXML(inTree,file_path):
     """ Write XML tree to file"""
@@ -83,3 +114,15 @@ def extract_info(pdf_path):
     Logger.debug('Extract title from PDF file: {}'.format(pdf_path))
     title = titleFromPdf(pdf_path)
     return title
+
+def adaptH(inStr):
+    """ Adapt string to be used in header"""
+    if inStr is None:
+        return 'none'
+    elif isinstance(inStr,bool):
+        if inStr:
+            return 'true'
+        else:
+            return 'false'
+    else:
+        return inStr
