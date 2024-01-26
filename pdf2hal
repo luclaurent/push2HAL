@@ -18,9 +18,9 @@ import sys,os
 import argparse
 import logging
 
-import libHAL as lib
-import misc as m
-import default as dflt
+import uploadHAL.libHAL as lib
+import uploadHAL.misc as m
+import uploadHAL.default as dflt
 
 FORMAT = 'PDF2HAL - %(asctime)s - %(levelname)s - %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO)

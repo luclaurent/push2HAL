@@ -15,7 +15,7 @@ import time
 import os
 import json
 import fitz
-import default as dflt
+from . import default as dflt
 from lxml import etree
 from pdftitle import get_title_from_file as titleFromPdf
 

@@ -17,8 +17,8 @@ import requests
 from requests.auth import HTTPBasicAuth
 from lxml import etree
 
-import default as dflt
-import misc as m
+from . import default as dflt
+from . import misc as m
 
 Logger = logging.getLogger('pdf2hal')
 
