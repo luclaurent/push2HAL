@@ -13,13 +13,15 @@ import logging
 import curses
 import time
 import os
+import re
 import json
 import fitz
 from . import default as dflt
 from lxml import etree
 from pdftitle import get_title_from_file as titleFromPdf
+import pycountry as pc
 
-Logger = logging.getLogger("pdf2hal")
+Logger = logging.getLogger("uploadHAL")
 
 
 def input_char(message):
@@ -134,3 +136,48 @@ def adaptH(inStr):
             return "false"
     else:
         return inStr
+    
+def getCountryFromText(text):
+    """ Try to get country from text """
+    r = None
+    if text:
+        # with text
+        for country in pc.countries:
+            if country.name.lower() in text.lower():
+                r = country.name
+                break
+        # with alpha3 code
+        for country in pc.countries:
+            if country.alpha_3.lower() in text.lower():
+                r = country.name
+                break
+        # # with alpha2 code
+        # for country in pc.countries:
+        #     if country.alpha_2.lower() in text.lower():
+        #         r = country.name
+        #         break
+    return r
+
+def getAlpha2Country(text):
+    """Try to get the alpha2 code of a country from a string"""
+    r = None
+    if text:
+        try:
+            r = pc.countries.search_fuzzy(text)
+        except LookupError as e:
+            Logger.error('LookupError: {}'.format(e))
+            return None
+    return r[0].alpha_2 if r else None
+
+def checkISBN(isbn):
+    """ Check if ISBN is OK """
+    isbn = isbn.replace("-", "").replace(" ", "").upper();
+    match = re.search(r'^(\d{9})(\d|X)$', isbn)
+    if not match:
+        return False
+
+    digits = match.group(1)
+    check_digit = 10 if match.group(2) == 'X' else int(match.group(2))
+
+    result = sum((i + 1) * int(digit) for i, digit in enumerate(digits))
+    return (result % 11) == check_digit

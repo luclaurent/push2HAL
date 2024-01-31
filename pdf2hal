@@ -24,7 +24,7 @@ import uploadHAL.default as dflt
 
 FORMAT = 'PDF2HAL - %(asctime)s - %(levelname)s - %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO)
-Logger = logging.getLogger('pdf2hal')
+Logger = logging.getLogger('uploadHAL')
 
 
 def run(args):
@@ -117,14 +117,31 @@ def run(args):
             Logger.debug('Write TEI file: {}'.format(tei_file_path))
             m.writeXML(tei_content,tei_file_path)
             
-            #prepare payload to upload to HAL
-            file,payload=lib.preparePayload(tei_content,pdf_path,dirPath,hal_id)
-            
-            # load credentials from file or from arguments
-            credentials = m.load_credentials(args)
-            
-            # upload to HAL
-            lib.upload2HAL(file,payload,credentials,server=serverType)
+            options = dict()
+            # deal with specific upload options
+            if args.complete:
+                Logger.info('Specific completion option(s) will be used: {}'.format(args.complete))
+                options['completion']=args.complete
+            if args.idhal:
+                Logger.info('Deposit on behalf of: {}'.format(args.idhal))
+                options['idFrom']=args.idhal
+                
+            # check is XML is valid
+            XMLstatus = lib.checkXML(tei_content)
+            if XMLstatus:
+                Logger.debug('XML file is valid')
+                #prepare payload to upload to HAL
+                file,payload=lib.preparePayload(tei_content,pdf_path,dirPath,hal_id,options=options)
+                
+                # load credentials from file or from arguments
+                credentials = m.load_credentials(args)
+                
+                # upload to HAL
+                lib.upload2HAL(file,payload,credentials,server=serverType)
+            else:
+                Logger.error('XML file is not valid')
+                exitStatus = os.EX_SOFTWARE
+                return exitStatus
         else:
             Logger.error("Failed to download TEI file.")
             exitStatus = os.EX_SOFTWARE
@@ -148,7 +165,9 @@ if __name__ == "__main__":
     parser.add_argument('-l','--login', help='Username for API (HAL)')
     parser.add_argument('-p','--passwd', help='Password for API (HAL)')
     parser.add_argument('-f','--force', help='Force for no interaction',action='store_true')
-    # sys.argv = ['pdf2hal.py', 'allix1989.pdf', '-v']#, '-a', 'hal-04215255']
+    parser.add_argument('-cc','--complete', help='Run completion (use grobid, idext or affiliation or list of theme spearated by comma)')
+    parser.add_argument('-id','--idhal', help='Declare deposition on behalf of a specific idHAL')
+    sys.argv = ['pdf2hal.py', 'allix1989.pdf', '-v']#, '-a', 'hal-04215255']
     args = parser.parse_args()
     
     # run main function
