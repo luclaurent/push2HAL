@@ -55,6 +55,8 @@ def run(args):
     XMLstatus = lib.checkXML(xmlData)
     ET = etree.ElementTree(xmlData)
     ET.write('test.xml', pretty_print=True, xml_declaration=True, encoding='utf-8')
+    
+    
     if XMLstatus:
         Logger.debug('XML file is valid')
         # #prepare payload to upload to HAL
