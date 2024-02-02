@@ -73,8 +73,8 @@ usage: json2hal [-h] [-c CREDENTIALS] [-v] [-e] [-t] [-l LOGIN] [-p PASSWD] [-cc
 - by default, the [preprod server][1] is used (argument `-e` use the [production server][2])
 - a test mode on production server could be used by give argument `-t`
 
-[1] [https://api-preprod.archives-ouvertes.fr/](https://api-preprod.archives-ouvertes.fr/)
-[1] [https://api.archives-ouvertes.fr/](https://api.archives-ouvertes.fr/)
+[1]: [https://api-preprod.archives-ouvertes.fr/](https://api-preprod.archives-ouvertes.fr/)
+[2]: [https://api.archives-ouvertes.fr/](https://api.archives-ouvertes.fr/)
   
 ## Installation
 
