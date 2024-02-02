@@ -21,7 +21,7 @@ from lxml import etree
 from pdftitle import get_title_from_file as titleFromPdf
 import pycountry as pc
 
-Logger = logging.getLogger("uploadHAL")
+Logger = logging.getLogger("push2HAL")
 
 
 def input_char(message):

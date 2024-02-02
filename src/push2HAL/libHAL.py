@@ -45,7 +45,7 @@ def getDataFromHAL(
         if typeDB == 'journal':
             url = dflt.HAL_API_JOURNAL_URL
         elif typeDB == 'article':
-            url = dflt.HAL_API_URL
+            url = dflt.HAL_API_SEARCH_URL
         elif typeDB == 'anrproject':
             url = dflt.HAL_API_ANR_URL
         elif typeDB == 'authorstruct':
@@ -95,8 +95,8 @@ def getDataFromHAL(
         elif typeR == 'xml-tei':
             data = response.text
             # declare namespace
-            key, value = list(dflt.DEFAULT_NAMESPACE_XML.items())[0]
-            etree.register_namespace(key, value)
+            # key, value = list(dflt.DEFAULT_NAMESPACE_XML.items())[0]
+            # etree.register_namespace(key, value)
             return etree.fromstring(data.encode('utf-8'))
         return data
     return []
@@ -256,7 +256,9 @@ def preparePayload(
     header['Packaging'] = m.adaptH(
         options.get('allowCompletion', dflt.DEFAULT_XML_SWORD_PACKAGING)
     )
-    header['X-test'] = m.adaptH(options.get('halTest', dflt.DEFAULT_HAL_TEST))
+    header['X-test'] = m.adaptH(options.get('testMode', dflt.DEFAULT_HAL_TEST))
+    if header['X-test'] == '1':
+        Logger.warning('Test mode activated')
     if pdf_path:
         header['Content-Type'] = m.adaptH('application/zip')
         header['Export-To-Arxiv'] = m.adaptH(
@@ -303,12 +305,14 @@ def upload2HAL(file, headers, credentials, server='preprod'):
 
     if res.status_code == 201:
         Logger.info('Successfully upload to HAL.')
-    if res.status_code == 202:
+    elif res.status_code == 202:
         Logger.info('Note accepted by HAL.')
         # read return message
         xmlResponse = etree.fromstring(res.text.encode('utf-8'))
         elem = xmlResponse.findall('id', xmlResponse.nsmap)
         Logger.info('HAL ID: {}'.format(elem[0].text))
+    elif res.status_code == 401:
+        Logger.info('Authentification refused - check credentials')
     else:
         # read error message
         xmlResponse = etree.fromstring(res.text.encode('utf-8'))
