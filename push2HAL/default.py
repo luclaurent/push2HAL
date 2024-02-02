@@ -30,9 +30,11 @@ DEFAULT_EXPORT_PMC='false'
 DEFAULT_HIDE_REPEC='false'
 DEFAULT_HIDE_OAI='false'
 DEFAULT_ALLOW_COMPLETION='false'
+DEFAULT_HAL_TEST='1'
 
 DEFAULT_VALIDATION_XSD = 'aofr.xsd'
-DEFAULT_NAMESPACE_XML = {None: 'http://www.tei-c.org/ns/1.0'}#, 'tei': 'http://www.tei-c.org/ns/1.0' , 'hal':'http://hal.archives-ouvertes.fr'} #{"tei": "http://www.tei-c.org/ns/1.0"}
+DEFAULT_TEI_URL_NAMESPACE = 'http://www.tei-c.org/ns/1.0'
+DEFAULT_NAMESPACE_XML = {None: DEFAULT_TEI_URL_NAMESPACE}#, 'tei': 'http://www.tei-c.org/ns/1.0' , 'hal':'http://hal.archives-ouvertes.fr'} #{"tei": "http://www.tei-c.org/ns/1.0"}
 DEFAULT_XML_LANG = "{http://www.w3.org/XML/1998/namespace}"
 DEFAULT_ERROR_DESCRIPTION_SWORD_LOC = "sword:verboseDescription"
 HAL_API_BASE = "https://api.archives-ouvertes.fr/"

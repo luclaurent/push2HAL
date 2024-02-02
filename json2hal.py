@@ -53,20 +53,32 @@ def run(args):
     xmlData = lib.buildXML(dataJSON)
     # validate xml structure
     XMLstatus = lib.checkXML(xmlData)
-    ET = etree.ElementTree(xmlData)
-    ET.write('test.xml', pretty_print=True, xml_declaration=True, encoding='utf-8')
-    
     
     if XMLstatus:
-        Logger.debug('XML file is valid')
-        # #prepare payload to upload to HAL
-        # file,payload=lib.preparePayload(tei_content,pdf_path,dirPath,hal_id,options=options)
+        Logger.debug('XML structure is valid')
+        # add PDF file if provided
+        pdf_path=None
+        if dataJSON.get('file',None):
+            # file directly found
+            pdf_path = dataJSON.get('file',None)
+            if not os.path.isfile(pdf_path):
+                # file not found, search in the same directory
+                pdf_path = os.path.join(dirPath,dataJSON['file'])
+            #
+            if os.path.isfile(pdf_path):
+                Logger.debug('PDF file: {}'.format(pdf_path))
+            else:
+                Logger.error('PDF file not found')
+                exitStatus = os.EX_OSFILE
+                return exitStatus
+        #prepare payload to upload to HAL
+        file,payload=lib.preparePayload(xmlData,pdf_path,dirPath,None) #,options=options)
         
-        # # load credentials from file or from arguments
-        # credentials = m.load_credentials(args)
+        # load credentials from file or from arguments
+        credentials = m.load_credentials(args)
         
-        # # upload to HAL
-        # lib.upload2HAL(file,payload,credentials,server=serverType)
+        # upload to HAL
+        lib.upload2HAL(file,payload,credentials,server=serverType)
     else:
         Logger.error('XML file is not valid')
         exitStatus = os.EX_SOFTWARE
@@ -84,7 +96,7 @@ if __name__ == "__main__":
     parser.add_argument('-p','--passwd', help='Password for API (HAL)')
     parser.add_argument('-cc','--complete', help='Run completion (use grobid, idext or affiliation or list of theme spearated by comma)')
     parser.add_argument('-id','--idhal', help='Declare deposition on behalf of a specific idHAL')
-    sys.argv = ['json2hal.py', 'test.json', '-v']#, '-a', 'hal-04215255']
+    sys.argv = ['json2hal.py', 'test.json', '-v', '-e']#, '-a', 'hal-04215255']
     args = parser.parse_args()
     
     # run main function

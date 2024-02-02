@@ -105,8 +105,8 @@ def checkTitle(title):
 def writeXML(inTree, file_path):
     """Write XML tree to file"""
     Logger.debug("Write XML file: {}".format(file_path))
-    et = etree.ElementTree(inTree)
-    et.write(file_path)
+    et = inTree.getroottree()
+    et.write(file_path, pretty_print=True, xml_declaration=True, encoding='utf-8')
     # f.write(etree.tostring(inTree, pretty_print=True, xml_declaration=True, encoding='utf-8'))
 
 
