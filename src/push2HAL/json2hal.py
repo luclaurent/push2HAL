@@ -33,9 +33,9 @@ def start():
     parser.add_argument('-t','--test', help='Execute on prod server but with test mode (dry-run)',action='store_true')
     parser.add_argument('-l','--login', help='Username for API (HAL)')
     parser.add_argument('-p','--passwd', help='Password for API (HAL)')
-    parser.add_argument('-cc','--complete', help='Run completion (use grobid, idext or affiliation or list of theme spearated by comma)')
+    parser.add_argument('-cc','--complete', help='Run completion (use grobid, idext or affiliation or list of terms spearated by comma)')
     parser.add_argument('-id','--idhal', help='Declare deposition on behalf of a specific idHAL')
-    sys.argv = ['json2hal.py', 'test.json', '-v', '-t']#, '-a', 'hal-04215255']
+    # sys.argv = ['json2hal.py', 'test.json', '-v', '-t']#, '-a', 'hal-04215255']
     args = parser.parse_args()
     
     # load credentials from file or from arguments

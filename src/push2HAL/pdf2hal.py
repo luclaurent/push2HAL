@@ -39,7 +39,7 @@ def start():
     parser.add_argument('-f','--force', help='Force for no interaction',action='store_true')
     parser.add_argument('-cc','--complete', help='Run completion (use grobid, idext or affiliation or list of theme spearated by comma)')
     parser.add_argument('-id','--idhal', help='Declare deposition on behalf of a specific idHAL')
-    sys.argv = ['pdf2hal.py', 'allix1989.pdf', '-v']#, '-a', 'hal-04215255']
+    # sys.argv = ['pdf2hal.py', 'allix1989.pdf', '-v']#, '-a', 'hal-04215255']
     args = parser.parse_args()
     
     # load credentials from file or from arguments
