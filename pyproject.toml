@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+dynamic = ["version"]
+name = "push2HAL"
+authors = [
+  { name="Luc LAURENT", email="luc.laurent@lecnam.net" },
+]
+description = "Tools to push content to HAL repo"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: Unix",
+]
+dependencies = [
+  "pdftitle",
+  "pymupdf",
+  "pycountry",
+  "unidecode",
+  "python-stdnum",
+  "unidecode",
+  "setuptools>=60",
+  "setuptools-scm>=8.0"
+]
+license = {file = "LICENSE"}
+keywords = ["HAL", "OA", "Open-Access", "push", "tei"]
+
+[project.urls]
+Homepage = "https://github.com/luclaurent/push2HAL"
+Repository = "https://github.com/luclaurent/push2HAL.git"
+Issues = "https://github.com/luclaurent/push2HAL/issues"
+
+[tool.setuptools_scm]
+version_file = "src/push2HAL/version.py"
+
+[project.scripts]
+pdf2hal = "push2HAL.pdf2hal:start"
+json2hal = "push2HAL.json2hal:start"
