@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/zsh
 # Deploy push2HAL weel to pypi server.
-
+set -x
 # wheel path
 WHEEL_DIR=$(pwd)/dist
 
@@ -25,6 +25,9 @@ function wheel()
     # Clean-up tmp directory
     cd $WHEEL_DIR
     trap 'rm -rf "$TEMP_DIR"' EXIT
+    deactivate
+    python -V
+    which python
     if [ $SUCCESS -eq 0 ]
     then
         echo "Ready for uploading :" $(ls $WHEEL_DIR/push2HAL*.whl)
@@ -40,6 +43,8 @@ for i in "$@"
 do
     case "$i" in
     -i|--install) pip install --user twine
+    ;;
+    -c|--check) which python&&python -V&&twine --version&&which twine
     ;;
     -t|--test)
     wheel && twine upload --verbose -r testpypi $WHEEL_DIR/push2HAL*.whl
