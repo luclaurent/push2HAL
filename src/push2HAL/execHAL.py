@@ -95,7 +95,12 @@ def runJSON2HAL(
             xmlData, pdf_path, dirPath, None, options=options)
 
         # upload to HAL
-        lib.upload2HAL(file, payload, credentials, server=serverType)
+        if credentials:
+            lib.upload2HAL(file, payload, credentials, server=serverType)
+        else:
+            Logger.error('No provided credentials')
+            exitStatus = os.EX_CONFIG
+            return exitStatus
     else:
         Logger.error("XML file is not valid")
         exitStatus = os.EX_SOFTWARE
@@ -231,7 +236,12 @@ def runPDF2HAL(
                 file,payload=lib.preparePayload(tei_content,pdf_path,dirPath,hal_id,options=options)
                 
                 # upload to HAL
-                lib.upload2HAL(file,payload,credentials,server=serverType)
+                if credentials:
+                    lib.upload2HAL(file,payload,credentials,server=serverType)
+                else:
+                    Logger.error('No provided credentials')
+                    exitStatus = os.EX_CONFIG
+                    return exitStatus
             else:
                 Logger.error('XML file is not valid')
                 exitStatus = os.EX_SOFTWARE
