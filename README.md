@@ -1,4 +1,4 @@
-# push2HAL
+![Firefly push2HAL-ordinateur 55689](https://github.com/luclaurent/push2HAL/assets/147177/40f90c82-8d19-47ba-aa70-982765632942)
 
 `push2HAL` is a basic Python library dedicated to achieving upload on [HAL](https://hal.science) database. It will use the classical API of HAL to get information and the SWORD one to upload content. Two main executables are provided (for UNIX use only):
 
