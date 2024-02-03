@@ -1,1 +1,2 @@
 include LICENSE
+include src/push2HAL/aofr.xsd

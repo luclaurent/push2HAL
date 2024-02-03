@@ -1,0 +1,82 @@
+{
+    "type": "article",
+    "lang": "en",
+    "title": {"en":"article", "fr":"article"},    
+    "subtitle": "A subtitle",
+    "authors": [
+        {
+            "firstname": "John",
+            "lastname": "Doe",
+            "affiliation": "affiliation",
+            "orcid": "orcid",
+            "email": "email"
+        },
+        {
+            "firstname": "Jane",
+            "middle": "Middle",
+            "lastname": "Doe",
+            "affiliation": ["affiliationA", "affiliationB"],
+            "orcid": "orcid",
+            "email": "email"
+        }
+    ],
+    "licence": "cc-by",
+    "notes":{
+        "invited": "yes",
+        "audience": "international",
+        "popular": "no", 
+        "peer": "yes", 
+        "proceedings": "no", 
+        "comment": "small comment",
+        "description": "small description"
+    },
+    "ID":{
+        "isbn": "978-1725183483",
+        "journal": "Advanced Modeling and Simulation in Engineering Sciences",
+        "issn": "xxx"
+    },
+    "infoDoc":
+    {
+        "publisher": "springer",
+        "volume": "20",
+        "issue": "1",
+        "pages": "10-25",
+        "serie": "a special collection",
+        "datePub": "2024-01-01",
+        "dateEPub": "2024-01"
+    },
+    "extref":{
+        "bibcode": "erg",
+        "ads": "gaergezg",
+        "publisher": "https://publisher.com/ID",
+        "link1": "https://link1.com/ID",
+        "link2": "https://link2.com/ID",
+        "link3": "https://link3.com/ID"
+    },
+    "keywords": {
+        "en": ["keyword1", "keyword2"],
+        "fr": ["mot-clé1", "mot-clé2"]
+    },
+    "codes": {
+        "halDomain": ["phys"]
+    },
+    "structures":[
+        {
+            "id": "affiliation",
+            "name": "laboratory for MC, university of Yeah",
+            "acronym": "LMC",
+            "address": "Blue street 155, 552501 Olso, Norway",
+            "url": "https://lmc.univ-yeah.com"
+        },
+        {
+            "id": "affiliationB",
+            "name": "laboratory for MCL, university of Yeah",
+            "acronym": "LMCL",
+            "address": {
+                "line":"Blue street 155, 552501 Olso, Norway",
+                "country":"Norway"
+            },
+            "url": "https://lmcl.univ-yeah.com"
+        }
+    ]
+}

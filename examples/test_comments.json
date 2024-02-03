@@ -1,0 +1,108 @@
+{
+    "type": "article",
+    "title": {"en":"article", "fr":"article"},    
+    "subtitle": "A subtitle",
+    "authors": [
+        {
+            "firstname": "John",
+            "lastname": "Doe",
+            "affiliation": "affiliation",
+            "affiliationHAL": "affiliation",
+            "orcid": "orcid",
+            "email": "email"
+        },
+        {
+            "firstname": "Jane",
+            "middle": "Middle",
+            "lastname": "Doe",
+            "affiliation": ["affiliation", "affiliationB"],
+            "orcid": "orcid",
+            "email": "email"
+        }
+    ],
+    "file": "file.pdf",
+    "license": "cc-by",
+    "notes":{
+        "invited": "yes",
+        "audience": "international",
+        "popular": "no", // yes for popular science
+        "peer": "yes", // yes for peer-reviewed
+        "proceedings": "no", // yes for document in proceedings
+        "comment": "small comment",
+        "description": "small description",
+    },
+    "ID":{
+        "isbn": "978-1725183483",
+        // "patentNumber": "xxx",
+        // "reportNumber": "xxx",
+        // "locaRef": "xxx",
+        // "haJournalId": "xxx",
+        "journal": "Advanced Modeling and Simulation in Engineering Sciences",
+        "issn": "xxx",
+        // "eissn": "xxx",
+        // "booktitle": "xxx",
+        // "source": "xxx",
+    },
+    "infoDoc":
+    {
+        "publisher": "springer",
+        "volume": "20",
+        "issue": "1",
+        "pages": "10-25",
+        "serie": "a special collection",
+        "datePub": "2024-01-01",
+        "dateEPub": "2024-01"
+    },
+    "series":{
+        "editor": "Pr X Yy, Pr A Bb",
+        "title": "A grat series",
+    },
+    "extref":{
+        "doi": "reg",
+        "arxiv": "ger",
+        "bibcode": "erg",
+        "ird": "greger",
+        "pubmed": "greger",
+        "ads": "gaergezg",
+        "pubmedcentral": "gegzefdv",
+        "irstea": "vvxc",
+        "sciencespo": "gderg",
+        "oatao": "gev",
+        "ensam": "xcvcxv",
+        "prodinra": "vxcv",
+        "publisher": "https://publisher.com/ID",
+        "link1": "https://link1.com/ID",
+        "link2": "https://link2.com/ID",
+        "link3": "https://link3.com/ID"
+    },
+    "keywords": {
+        "en": ["keyword1", "keyword2"],
+        "fr": ["mot-clé1", "mot-clé2"]
+    },
+    "codes": {
+        "classification": " ",
+        "acm": " ",
+        "mesh": " ",
+        "jel": " ",
+        "halDomain": ["physics", "halDomain2"],
+    },
+    "structures":[
+        {
+            "id": "affiliation",
+            "name": "laboratory for MC, university of Yeah",
+            "acronym": "LMC",
+            "address": "Blue street 155, 552501 Olso, Norway",
+            "url": "https://lmc.univ-yeah.com"
+        },
+        {
+            "id": "affiliationB",
+            "name": "laboratory for MCL, university of Yeah",
+            "acronym": "LMCL",
+            "address": {
+                "line":"Blue street 155, 552501 Olso, Norwa",
+                "country":"Norway"
+            },
+            "url": "https://lmcl.univ-yeah.com"
+        }
+    ]
+}
