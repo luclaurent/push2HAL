@@ -169,7 +169,7 @@ def runPDF2HAL(
                     title = selected_result
             else:
                 Logger.error('No result found in HAL.science')
-                exitStatus = os.EX_NOTFOUND
+                exitStatus = os.EX_SOFTWARE
                 return exitStatus
             
         if selected_result:

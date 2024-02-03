@@ -1,5 +1,9 @@
 # push2HAL
 
+![GitHub License](https://img.shields.io/github/license/luclaurent/push2HAL) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/push2HAL)
+
+
+
 `push2HAL` is a basic Python library dedicated to achieving upload on [HAL](https://hal.science) database. It will use the classical API of HAL to get information and the SWORD one to upload content. Two main executables are provided (for UNIX use only):
 
 - `pdf2hal` is able to upload a PDF file to an existing notice on HAL. 
@@ -78,11 +82,19 @@ usage: json2hal [-h] [-c CREDENTIALS] [-v] [-e] [-t] [-l LOGIN] [-p PASSWD] [-cc
   
 ## Installation
 
-`push2HAL` could be installed by downloading this repository and run `pip install .` in the root folder of it.
+`push2HAL` could be installed directly from [PyPI](https://pypi.org/project/push2HAL/) using `pip install push2HAL`
 
-## Requirements:
+In addition, download this repository and run `pip install .` in the root folder of it.
 
-`push2HAL` requires external modules. They can be installed using `pip install -r requirements` or could be installed directly using `pip install`
+## Examples
+
+Folder [`Examples`](./examples/) contains basic example files such as:
+
+- [`.apihal_example`](./examples/.apihal_example) is a credentials example file that must be edited, renamed as `.apihal` and located in the current working directory or in the same directory as the argument file for `pdf2hal` or `json2hal`.
+- [`file.pdf`](./examples/file.pdf) that can be used with `pdf2hal` for testing the behavior of the command: `pdf2hal file.pdf`
+- [`test_comments.json`](./examples/test_comments.json) contains a detailed version of the JSON file that can be used with `json2hal`. It contains all the possible fields of the input JSON file with basic comments. This file can not be used directly with `json2hal` (use `test.json` in place).
+- [`test.json`](./examples/test.json) is a working JSON file that can be used with `json2hal`: `json2hal test.json`.
+
 
 ## References
 
