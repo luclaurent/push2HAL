@@ -1,5 +1,7 @@
+// HAL references: https://api.archives-ouvertes.fr/docs/ref
+
 {
-    "type": "article",
+    "type": "article",      // specific type id see: https://api.archives-ouvertes.fr/ref/doctype (article only works, other types could reuires improvments on code)
     "title": {"en":"article", "fr":"article"},    
     "subtitle": "A subtitle",
     "authors": [
@@ -7,7 +9,7 @@
             "firstname": "John",
             "lastname": "Doe",
             "affiliation": "affiliation",
-            "affiliationHAL": "affiliation",
+            "affiliationHAL": "affiliation", // must be affiliation id from HAL (see https://api.archives-ouvertes.fr/ref/structure)
             "orcid": "orcid",
             "email": "email"
         },
@@ -20,28 +22,28 @@
             "email": "email"
         }
     ],
-    "file": "file.pdf",
-    "license": "cc-by",
+    "file": "file.pdf", // PDF file to include in the record
+    "license": "cc-by", // cc-by, cc-by-nc, cc-by-nc-nd, cc-by-nc-sa, cc-by-nd, cc-by-sa, cc0 (possible issue here)
     "notes":{
-        "invited": "yes",
-        "audience": "international",
+        "invited": "yes",   // invited or not
+        "audience": "international", // national or international
         "popular": "no", // yes for popular science
         "peer": "yes", // yes for peer-reviewed
         "proceedings": "no", // yes for document in proceedings
         "comment": "small comment",
-        "description": "small description",
+        "description": "small description"
     },
     "ID":{
         "isbn": "978-1725183483",
-        // "patentNumber": "xxx",
-        // "reportNumber": "xxx",
-        // "locaRef": "xxx",
-        // "haJournalId": "xxx",
+        "patentNumber": "xxx",
+        "reportNumber": "xxx",
+        "locaRef": "xxx",
+        "haJournalId": "xxx", // HAL journal id (could be determine bu json2hal)
         "journal": "Advanced Modeling and Simulation in Engineering Sciences",
         "issn": "xxx",
-        // "eissn": "xxx",
-        // "booktitle": "xxx",
-        // "source": "xxx",
+        "eissn": "xxx",
+        "booktitle": "xxx",
+        "source": "xxx"
     },
     "infoDoc":
     {
@@ -53,9 +55,9 @@
         "datePub": "2024-01-01",
         "dateEPub": "2024-01"
     },
-    "series":{
+    "series":{      // for book or proceedings
         "editor": "Pr X Yy, Pr A Bb",
-        "title": "A grat series",
+        "title": "A great series"
     },
     "extref":{
         "doi": "reg",
@@ -84,9 +86,9 @@
         "acm": " ",
         "mesh": " ",
         "jel": " ",
-        "halDomain": ["physics", "halDomain2"],
+        "halDomain": ["physics", "spi.fluid"] // HAL domains (see https://api.archives-ouvertes.fr/ref/domain?rows=400)
     },
-    "structures":[
+    "structures":[  // local structures (when no HAL structure id is provided)
         {
             "id": "affiliation",
             "name": "laboratory for MC, university of Yeah",

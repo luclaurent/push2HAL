@@ -8,13 +8,15 @@
             "name": "Python Debugger: Module PDF2HAL",
             "type": "debugpy",
             "request": "launch",
-            "module": "push2HAL.pdf2hal"
+            "module": "push2HAL.pdf2hal",
+            "args": ["-v","examples/file.pdf"]
         },
         {
             "name": "Python Debugger: Module JSON2HAL",
             "type": "debugpy",
             "request": "launch",
-            "module": "push2HAL.json2hal"
+            "module": "push2HAL.json2hal",
+            "args": ["-v","examples/test.json"]
         }
     ]
 }

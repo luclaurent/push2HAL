@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=64", "setuptools_scm>=8"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.17.0", "hatch-vcs"]
+build-backend = "hatchling.build"
 
 [project]
 dynamic = ["version"]
@@ -34,8 +34,18 @@ Homepage = "https://github.com/luclaurent/push2HAL"
 Repository = "https://github.com/luclaurent/push2HAL.git"
 Issues = "https://github.com/luclaurent/push2HAL/issues"
 
-[tool.setuptools_scm]
-version_file = "src/push2HAL/version.py"
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/push2HAL/version.py"
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/.github",
+  "/.vscode",
+]
+
 
 [project.scripts]
 pdf2hal = "push2HAL.pdf2hal:start"

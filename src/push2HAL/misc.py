@@ -81,6 +81,8 @@ def load_credentials(args):
         if os.path.isfile(dflt.DEFAULT_CREDENTIALS_FILE):
             with open(dflt.DEFAULT_CREDENTIALS_FILE) as f:
                 cred = json.load(f)
+    if not cred:
+        Logger.warning('No credentials found')
 
     return cred
 
