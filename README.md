@@ -11,7 +11,7 @@
 
 ## `pdf2hal` - Upload PDF file to an existing notice in HAL 
 
-`pdf2hal` proposes an interactive mode to upload a PDF to the right/selected notice in HAL by extracting basic data from the PDF file and executing search on HAL database
+`pdf2hal` proposes an interactive mode to upload a PDF to the right/selected notice in HAL by extracting basic data from the PDF file and executing a search on HAL database
 
 ## Usage:
 
