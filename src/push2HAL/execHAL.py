@@ -68,55 +68,54 @@ def runJSON2HAL(
 
     if XMLstatus:
         Logger.debug("XML structure is valid")
-        # add PDF file if provided
-        pdf_path = None
-        if dataJSON.get("file", None):
-            # file directly found
-            pdf_path = dataJSON.get("file", None)
-            if not os.path.isfile(pdf_path):
-                # file not found, search in the same directory
-                pdf_path = os.path.join(dirPath, dataJSON["file"])
-            #
-            if os.path.isfile(pdf_path):
-                Logger.debug("PDF file: {}".format(pdf_path))
-            else:
-                Logger.error("PDF file not found")
-                exitStatus = os.EX_OSFILE
-                return exitStatus
-        # deal with specific upload options
-        options = dict()
-        if completion:
-            Logger.info(
-                "Specific completion option(s) will be used: {}".format(completion)
-            )
-            options["completion"] = completion
-        if idhal:
-            Logger.info("Deposit on behalf of: {}".format(idhal))
-            options["idFrom"] = idhal
-        if testMode:
-            options["testMode"] = "1"
-        else:
-            options["testMode"] = "0"
-        # prepare payload to upload to HAL
-        file, payload = lib.preparePayload(
-            xmlData,
-            pdf_path,
-            dirPath,
-            xmlFileName=new_xml,
-            hal_id=None,
-            options=options,
-        )
-
-        # upload to HAL
-        if credentials:
-            lib.upload2HAL(file, payload, credentials, server=serverType)
-        else:
-            Logger.error("No provided credentials")
-            exitStatus = os.EX_CONFIG
-            return exitStatus
     else:
-        Logger.error("XML file is not valid")
-        exitStatus = os.EX_SOFTWARE
+        Logger.warning("XML file is not valid but continue")
+
+    # add PDF file if provided
+    pdf_path = None
+    if dataJSON.get("file", None):
+        # file directly found
+        pdf_path = dataJSON.get("file", None)
+        if not os.path.isfile(pdf_path):
+            # file not found, search in the same directory
+            pdf_path = os.path.join(dirPath, dataJSON["file"])
+        #
+        if os.path.isfile(pdf_path):
+            Logger.debug("PDF file: {}".format(pdf_path))
+        else:
+            Logger.error("PDF file not found")
+            exitStatus = os.EX_OSFILE
+            return exitStatus
+    # deal with specific upload options
+    options = dict()
+    if completion:
+        Logger.info(
+            "Specific completion option(s) will be used: {}".format(completion)
+        )
+        options["completion"] = completion
+    if idhal:
+        Logger.info("Deposit on behalf of: {}".format(idhal))
+        options["idFrom"] = idhal
+    if testMode:
+        options["testMode"] = "1"
+    else:
+        options["testMode"] = "0"
+    # prepare payload to upload to HAL
+    file, payload = lib.preparePayload(
+        xmlData,
+        pdf_path,
+        dirPath,
+        xmlFileName=new_xml,
+        hal_id=None,
+        options=options,
+    )
+
+    # upload to HAL
+    if credentials:
+        lib.upload2HAL(file, payload, credentials, server=serverType)
+    else:
+        Logger.error("No provided credentials")
+        exitStatus = os.EX_CONFIG
         return exitStatus
 
 
@@ -247,26 +246,25 @@ def runPDF2HAL(
             XMLstatus = lib.checkXML(tei_content)
             if XMLstatus:
                 Logger.debug("XML file is valid")
-                # prepare payload to upload to HAL
-                file, payload = lib.preparePayload(
-                    tei_content=tei_content, 
-                    pdf_path=pdf_path,
-                    dirPath=dirPath, 
-                    hal_id=hal_id, 
-                    options=options
-                )
-
-                # upload to HAL
-                if credentials:
-                    lib.upload2HAL(file, payload, credentials, server=serverType)
-                else:
-                    Logger.error("No provided credentials")
-                    exitStatus = os.EX_CONFIG
-                    return exitStatus
             else:
-                Logger.error("XML file is not valid")
-                exitStatus = os.EX_SOFTWARE
+                Logger.warning("XML file is not valid but continue")
+            # prepare payload to upload to HAL
+            file, payload = lib.preparePayload(
+                tei_content=tei_content, 
+                pdf_path=pdf_path,
+                dirPath=dirPath, 
+                hal_id=hal_id, 
+                options=options
+            )
+
+            # upload to HAL
+            if credentials:
+                lib.upload2HAL(file, payload, credentials, server=serverType)
+            else:
+                Logger.error("No provided credentials")
+                exitStatus = os.EX_CONFIG
                 return exitStatus
+            
         else:
             Logger.error("Failed to download TEI file.")
             exitStatus = os.EX_SOFTWARE
