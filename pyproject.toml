@@ -17,14 +17,14 @@ classifiers = [
     "Operating System :: Unix",
 ]
 dependencies = [
+  "requests",
+  "lxml",
   "pdftitle",
   "pymupdf",
   "pycountry",
   "unidecode",
   "python-stdnum",
-  "unidecode",
-  "setuptools>=60",
-  "setuptools-scm>=8.0"
+  "unidecode"
 ]
 license = {file = "LICENSE"}
 keywords = ["HAL", "OA", "Open-Access", "push", "tei"]
@@ -50,3 +50,16 @@ exclude = [
 [project.scripts]
 pdf2hal = "push2HAL.pdf2hal:start"
 json2hal = "push2HAL.json2hal:start"
+
+[tool.hatch.envs.test]
+dependencies = [
+  "pytest",
+  "pytest-cov",
+]
+
+[tool.hatch.envs.test.scripts]
+cov = 'pytest tests --cov-report=term-missing --cov-config=pyproject.toml --cov=pkg --cov=tests'
+
+
+[[tool.hatch.envs.test.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11"]
