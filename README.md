@@ -7,7 +7,7 @@
 
 `push2HAL` is a basic Python library dedicated to achieving upload on [HAL](https://hal.science) database. It will use the classical API of HAL to get information and the SWORD one to upload content. Two main executables are provided (for UNIX use only):
 
-- `pdf2hal` is able to upload a PDF file to an existing notice on HAL. 
+- `pdf2hal` is able to upload a PDF file to an existing notice on HAL (only with valid permission to modify it). 
 - `json2hal` is able to build the necessary data from a JSON file to create a new notice in HAL and upload it directly with or without providing a PDF file.
 
 ## `pdf2hal` - Upload PDF file to an existing notice in HAL 
