@@ -106,3 +106,9 @@ The tools have been developed by considering documentation:
 - [common XML files for HAL](https://github.com/CCSDForge/HAL/tree/master/Sword)
 - [HAL referential](https://api.archives-ouvertes.fr/docs/ref)
 - [HAL API syntax for searching](https://api.archives-ouvertes.fr/docs/search)
+
+## Todo
+
+- [ ] Create `xml2hal` cli
+- [ ] Add the  possibility to use `pdf2hal` only for finding HAL id
+- [ ] Return HAL document ID after creation of a new note
