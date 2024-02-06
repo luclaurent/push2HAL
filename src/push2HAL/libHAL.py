@@ -34,7 +34,7 @@ TEI = "{%s}" % dflt.DEFAULT_TEI_URL_NAMESPACE
 def getDataFromHAL(
     txtsearch=None,
     typeI=None,
-    typeDB=None,
+    typeDB="article",
     typeR="json",
     returnFields="title_s,author_s,halId_s,label_s,docid",
     url=dflt.HAL_API_SEARCH_URL,
@@ -76,6 +76,9 @@ def getDataFromHAL(
     elif typeI == "docId":
         Logger.debug("Searching for document's ID: {}".format(txtsearch))
         query = "halId_s:{}".format(txtsearch)
+    elif typeI == "doi":
+        Logger.debug("Searching for document's doi: {}".format(txtsearch))
+        query = "doiId_id:{}".format(txtsearch)
     #
     Logger.debug("Return format: {}".format(typeR))
 
@@ -99,6 +102,19 @@ def getDataFromHAL(
             return etree.fromstring(data.encode("utf-8"))
         return data
     return []
+
+def checkDoiInHAL(doi):
+    """ Check if DOI is already in HAL """
+    # request
+    dataFromHAL = getDataFromHAL(txtsearch=doi,
+                                    typeI='doi',
+                                    typeDB="article",
+                                    typeR="json")
+    return_code = False
+    if dataFromHAL:
+        if len(dataFromHAL) > 0:
+                return_code = True
+    return return_code
 
 
 def choose_from_results(
