@@ -22,7 +22,7 @@ from . import misc as m
 
 FORMAT = 'PDF2HAL - %(asctime)s - %(levelname)s - %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO)
-Logger = logging.getLogger('uploadHAL')
+Logger = logging.getLogger('push2HAL')
 
 
 

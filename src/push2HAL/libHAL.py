@@ -1,10 +1,10 @@
 ####*****************************************************************************************
 ####*****************************************************************************************
 ####*****************************************************************************************
-#### Library part of uploadHAL
+#### Library part of push2HAL
 #### Copyright - 2024 - Luc Laurent (luc.laurent@lecnam.net)
 ####
-#### description available on https://github.com/luclaurent/uploadHAL
+#### description available on https://github.com/luclaurent/push2HAL
 ####*****************************************************************************************
 ####*****************************************************************************************
 
@@ -25,7 +25,7 @@ from stdnum import isbn, issn
 from . import default as dflt
 from . import misc as m
 
-Logger = logging.getLogger("uploadHAL")
+Logger = logging.getLogger("push2HAL")
 
 
 ## get XML's namespace for everything
