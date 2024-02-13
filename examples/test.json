@@ -3,6 +3,7 @@
     "lang": "en",
     "title": {"en":"article", "fr":"article"},    
     "subtitle": "A subtitle",
+    "abstract": {"en":"a very long abstract", "fr": "un très long résumé"},
     "authors": [
         {
             "firstname": "John",

@@ -61,23 +61,46 @@ def showPDFcontent(pdf_path, number=dflt.DEFAULT_NB_CHAR):
         Logger.error(f"Error: {e}")
 
 
-def load_credentials(args):
+def load_credentials(args=None):
     """Load credentials from different sources"""
     cred = dict()
     # if args.hash:
     #     Logger.debug('Load credentials from hash')
     #     cred['hash']=args.hash
-    if args.login and args.passwd:
+    # load input arguments depending on cases
+    login = None
+    passwd = None
+    inputfile = None
+    if args:
+        if type(args) is dict:
+            Logger.debug("Load credentials from dictionary")
+            login = args.get("login",None)
+            passwd = args.get("passwd",None)
+            inputfile = args.get("file",None)
+        elif type(args) is str():
+            Logger.debug("Load credentials from string (file path)")
+            inputfile = args
+        elif type(args) is list():
+            Logger.debug("Load credentials from list (login, passwd)")
+            if len(args)>1:
+                login = args[0]
+                passwd = args[1]
+        else:
+            login = args.login
+            passwd = args.passwd
+            inputfile = args.credentials        
+        
+    if login and passwd:
         Logger.debug("Load credentials from arguments")
         cred["login"] = args.login
         cred["passwd"] = args.passwd
-    elif args.credentials:
-        Logger.debug("Load credentials from file {}".format(args.credentials))
-        if os.path.isfile(args.credentials):
-            with open(args.credentials) as f:
+    elif inputfile:
+        Logger.debug("Load credentials from file {}".format(inputfile))
+        if os.path.isfile(inputfile):
+            with open(inputfile) as f:
                 cred = json.load(f)
     else:
-        Logger.debug("Load credentials from file")
+        Logger.debug("Load credentials from root default file {}".format(dflt.DEFAULT_CREDENTIALS_FILE))
         if os.path.isfile(dflt.DEFAULT_CREDENTIALS_FILE):
             with open(dflt.DEFAULT_CREDENTIALS_FILE) as f:
                 cred = json.load(f)

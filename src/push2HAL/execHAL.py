@@ -112,7 +112,8 @@ def runJSON2HAL(
 
     # upload to HAL
     if credentials:
-        lib.upload2HAL(file, payload, credentials, server=serverType)
+        id_hal = lib.upload2HAL(file, payload, credentials, server=serverType)
+        return id_hal
     else:
         Logger.error("No provided credentials")
         exitStatus = os.EX_CONFIG

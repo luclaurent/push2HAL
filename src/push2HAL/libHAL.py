@@ -15,6 +15,7 @@ import shutil
 import tempfile
 import requests
 import difflib
+import json
 from requests.auth import HTTPBasicAuth
 from lxml import etree
 import re
@@ -324,7 +325,9 @@ def upload2HAL(file, headers, credentials, server="preprod"):
         headers=headers,
         auth=HTTPBasicAuth(credentials["login"], credentials["passwd"]),
     )
-
+    
+     
+    hal_id = None
     if res.status_code == 201:
         Logger.info("Successfully upload to HAL.")
     elif res.status_code == 202:
@@ -332,7 +335,8 @@ def upload2HAL(file, headers, credentials, server="preprod"):
         # read return message
         xmlResponse = etree.fromstring(res.text.encode("utf-8"))
         elem = xmlResponse.findall("id", xmlResponse.nsmap)
-        Logger.info("HAL ID: {}".format(elem[0].text))
+        hal_id = elem[0].text
+        Logger.debug("HAL ID: {}".format(elem[0].text))
     elif res.status_code == 401:
         Logger.info("Authentification refused - check credentials")
     else:
@@ -343,14 +347,22 @@ def upload2HAL(file, headers, credentials, server="preprod"):
         )
         Logger.error("Failed to upload. Status code: {}".format(res.status_code))
         if len(elem) > 0:
+            json_ret = list()
             for i in elem:
+                json_ret.append(json.loads(i.text))
                 Logger.warning("Error: {}".format(i.text))
-
+        # extract hal_id
+        for j in json_ret:
+            if j.get('duplicate-entry'):
+                hal_id = list(j.get('duplicate-entry').keys())[0]
+    return hal_id
 
 def setTitles(nInTree, titles, subTitles=None):
     """Add title(s) and subtitle(s) in XML (and specified language)"""
     if subTitles:
         listTitles = {"titles": titles, "subtitles": subTitles}
+    else:
+        listTitles = {"titles": titles}
     nTitle = list()
     for k, n in listTitles.items():
         if type(n) == dict:
@@ -634,19 +646,20 @@ def setAbstract(inTree, abstracts):
     if not abstracts:
         Logger.warning("No provided abstract")
         return None
-    if type(abstracts) != list():
-        abstracts = [abstracts]
     nAbstract = list()
-    for a in abstracts:
-        if type(a) == dict:
+    if type(abstracts) == str():
+        Logger.warning("No language for abstract: force english")
+        nAbstract.append(etree.SubElement(inTree, TEI + "abstract"))
+        nAbstract[-1].set(dflt.DEFAULT_XML_LANG + "lang", "en")
+        nAbstract[-1].text = abstracts
+    else:
+        nKeywords = list()
+        for lk, vk in abstracts.items():
             nAbstract.append(etree.SubElement(inTree, TEI + "abstract"))
-            nAbstract[-1].set(dflt.DEFAULT_XML_LANG + "lang", a["lang"])
-            nAbstract[-1].text = a["text"]
-        else:
-            Logger.warning("No language for abstract: force english")
-            nAbstract.append(etree.SubElement(inTree, TEI + "abstract"))
-            nAbstract[-1].set(dflt.DEFAULT_XML_LANG + "lang", "en")
-            nAbstract[-1].text = a
+            nAbstract[-1].set(dflt.DEFAULT_XML_LANG + "lang", lk)
+            nAbstract[-1].text = vk
+    return nAbstract
+    
     return nAbstract
 
 
@@ -709,7 +722,7 @@ def setIDS(inTree, data):
             Logger.warning("ISSN not valid: {}, continue...".format(data.get("issn")))
     lID.append(setID(inTree, data.get("issn"), "issn"))
     if data.get("eissn", None):
-        if not isbn.validate(data.get("eissn")):
+        if not issn.validate(data.get("eissn")):
             Logger.warning("eISSN not valid: {}, continue...".format(data.get("eissn")))
     lID.append(setID(inTree, data.get("eissn"), "eissn"))
     if data.get("j", None):
@@ -771,8 +784,8 @@ def setLanguage(inTree, language):
     """Set main language in XML"""
     langUsage = etree.SubElement(inTree, TEI + "langUsage")
     if not language:
-        Logger.warning("No language provided - force {}".format(dflt.DEFAULT_XML_LANG))
-        language = dflt.DEFAULT_XML_LANG
+        Logger.warning("No language provided - force {}".format(dflt.DEFAULT_LANG_DOC))
+        language = dflt.DEFAULT_LANG_DOC
     idL = etree.SubElement(langUsage, TEI + "language")
     idL.set("ident", language)
 

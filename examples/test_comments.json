@@ -4,6 +4,7 @@
     "type": "article",      // specific type id see: https://api.archives-ouvertes.fr/ref/doctype (article only works, other types could reuires improvments on code)
     "title": {"en":"article", "fr":"article"},    
     "subtitle": "A subtitle",
+    "abstract": {"en":"a very long abstract", "fr": "un très long résumé"},
     "authors": [
         {
             "firstname": "John",
