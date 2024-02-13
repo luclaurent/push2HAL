@@ -110,5 +110,5 @@ The tools have been developed by considering documentation:
 ## Todo
 
 - [ ] Create `xml2hal` cli
-- [ ] Add the  possibility to use `pdf2hal` only for finding HAL id
-- [ ] Return HAL document ID after creation of a new note
+- [ ] Add the possibility to use `pdf2hal` only for finding HAL id
+- [x] Return HAL document ID after creation of a new note
