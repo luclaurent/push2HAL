@@ -1,6 +1,6 @@
 ![Firefly push2HAL-ordinateur 55689](https://github.com/luclaurent/push2HAL/assets/147177/40f90c82-8d19-47ba-aa70-982765632942)
 
-![GitHub License](https://img.shields.io/github/license/luclaurent/push2HAL) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/push2HAL) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/luclaurent/push2HAL/CI-test.yml)
+![GitHub License](https://img.shields.io/github/license/luclaurent/push2HAL) ![PyPI - Version](https://img.shields.io/pypi/v/push2hal) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/luclaurent/push2HAL/CI-test.yml)
 
 
 
