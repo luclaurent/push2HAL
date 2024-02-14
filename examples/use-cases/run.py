@@ -5,13 +5,18 @@ from push2HAL import libHAL, execHAL,misc
 import os
 import pathlib
 import json
+import logging
 
 import libConvert
+
+FORMAT = "LBCONVERT - %(asctime)s - %(levelname)s - %(message)s"
+logging.basicConfig(format=FORMAT)
+
 
 saveDir = "data"
 pathlib.Path(saveDir).mkdir(parents=True, exist_ok=True)
 
-if True:
+if False:
     # get full list of papers in journal
     with open('.api_springer','r') as f: 
         api_key = f.read()
@@ -57,7 +62,7 @@ if True:
                 )
             )
 
-if True:
+if False:
     # load pickle
     article_list = pickle.load(
         open(os.path.join(saveDir, "article_list.pck"), "rb")
@@ -77,7 +82,7 @@ if True:
     pickle.dump(article_list_collection, file)
     file.close()
 
-if True:
+if False:
     # load pickle
     article_list_collection = pickle.load(
         open(os.path.join(saveDir, "article_list_collection.pck"), "rb")
@@ -101,7 +106,7 @@ if True:
     print("Articles in HAL: {}".format(len(article_list_in_hal)))
     print("Articles not in HAL: {}".format(len(article_list_notin_hal)))
 
-if True:
+if False:
     # load pickle
     article_list = pickle.load(
         open(os.path.join(saveDir, "article_list_notin_hal.pck"), "rb")
@@ -129,4 +134,24 @@ if True:
                 outfile.write(json_object)
         except:
             print("Error with article: {}".format(art["doi"]))
-          
+    
+    
+# add pdf to HAL      
+if True:
+    import glob
+    jsondir = 'json'
+    for file in glob.glob(os.path.join(jsondir, "*.json")):
+        data = json.loads(open(file).read())
+        # add pdf
+        if data.get("doc_idhal") and data.get("fileTmp"):
+            execHAL.runPDF2HAL(
+                os.path.join(jsondir,data.get("fileTmp")),
+                verbose=True,
+                prod="test",
+                credentials=misc.load_credentials(),
+                completion=None,
+                halid=data.get("doc_idhal"),
+                idhal=None,
+                interaction=False)
+            
+            

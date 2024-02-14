@@ -208,7 +208,8 @@ def runPDF2HAL(
         Logger.info("Provided HAL_id: {}".format(halid))
         hal_id = halid
         # get data from HAL
-        dataHAL = lib.getDataFromHAL(DOCid=hal_id)
+        dataHAL = lib.getDataFromHAL(txtsearch=hal_id, typeI="docId", typeDB="article")
+
         if len(dataHAL) > 0:
             selected_title = dataHAL[0].get("title_s", "N/A")
             selected_author = dataHAL[0].get("author_s", "N/A")

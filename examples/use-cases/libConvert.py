@@ -13,8 +13,9 @@ import json
 cr = Crossref()
 
 FORMAT = "LBCONVERT - %(asctime)s - %(levelname)s - %(message)s"
-logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+logging.basicConfig(format=FORMAT)
 Logger = logging.getLogger("lbconvert")
+Logger.setLevel(logging.DEBUG)
 
 
 

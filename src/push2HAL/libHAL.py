@@ -277,7 +277,7 @@ def preparePayload(
         )
         header["Hide-In-OAI"] = m.adaptH(options.get("hide4oai", header["Hide-In-OAI"]))
         header["Content-Disposition"] = m.adaptH(
-            "attachment; filename={}".format(xml_file_path)
+            "attachment; filename={}".format(xmlFileName)   # path inside the archive
         )
     else:
         header["Content-Type"] = m.adaptH("text/xml")
