@@ -775,7 +775,7 @@ def setConference(inTree, data):
 def setLanguage(inTree, language):
     """Set main language in XML"""
     langUsage = etree.SubElement(inTree, TEI + "langUsage")
-    if languageis not None:
+    if language is not None:
         Logger.warning("No language provided - force {}".format(dflt.DEFAULT_LANG_DOC))
         language = dflt.DEFAULT_LANG_DOC
     idL = etree.SubElement(langUsage, TEI + "language")
