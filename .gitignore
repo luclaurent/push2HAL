@@ -163,3 +163,5 @@ cython_debug/
 ## push2HAL
 .apihal
 push2HAL/version.py
+examples/use-cases/.apihal
+examples/use-cases/.api_springer

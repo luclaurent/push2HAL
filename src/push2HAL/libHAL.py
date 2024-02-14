@@ -258,11 +258,9 @@ def preparePayload(
     header["Hide-For-RePEc"] = m.adaptH(dflt.DEFAULT_HIDE_REPEC)
     header["Hide-In-OAI"] = m.adaptH(dflt.DEFAULT_HIDE_OAI)
     header["X-Allow-Completion"] = m.adaptH(
-        options.get("allowCompletion", dflt.DEFAULT_ALLOW_COMPLETION)
+        options.get("completion", dflt.DEFAULT_ALLOW_COMPLETION)
     )
-    header["Packaging"] = m.adaptH(
-        options.get("allowCompletion", dflt.DEFAULT_XML_SWORD_PACKAGING)
-    )
+    header["Packaging"] = m.adaptH(dflt.DEFAULT_XML_SWORD_PACKAGING)
     header["X-test"] = m.adaptH(options.get("testMode", dflt.DEFAULT_HAL_TEST))
     if header["X-test"] == "1":
         Logger.warning("Test mode activated")
@@ -1048,7 +1046,7 @@ def getStructType(name):
         ):
             return "institution"
         elif "laboratoire" in name or "laboratory" in name or "lab" in name:
-            return "laboratory"
+            return "institution" #"laboratory" (must be declared with dependency to an institution)
         elif "institute" in name or "institution" in name:
             return "institution"
         elif "department" in name or "departement" in name:
@@ -1080,8 +1078,9 @@ def setAddress(inTree, address):
     idA = list()
     idA.append(etree.SubElement(inTree, TEI + "addrLine"))
     idA[-1].text = addressLine
-    idA.append(etree.SubElement(inTree, TEI + "country"))
-    idA[-1].set("key", addressCountryCode)
+    if addressCountryCode is not None:
+        idA.append(etree.SubElement(inTree, TEI + "country"))
+        idA[-1].set("key", addressCountryCode)
     if addressCountry:
         idA[-1].text = addressCountry
     return idA
@@ -1095,7 +1094,7 @@ def setStructure(inTree, data, id=None):
     orgType = data.get("type", None)
     if orgType is None:
         orgType = getStructType(data.get("name", None))
-        if orgType:
+        if orgType is None:
             orgType = dflt.DEFAULT_STRUCT_TYPE
     idS = etree.SubElement(inTree, TEI + "org")
     idS.set("type", orgType)
