@@ -184,14 +184,14 @@ def addFileInXML(inTree, filePath, hal_id="upload"):
     shutil.copyfile(filePath, newFilename)
     # find section to add file
     inS = inTree.find(".//editionStmt", inTree.nsmap)
-    if len(inS)>0:
+    if inS is not None
         newE = etree.SubElement(inTree, TEI + "editionStmt")  # , nsmap=inTree.nsmap)
         pos = inTree.find(".//titleStmt", inTree.nsmap)
         pos.addnext(newE)
         inS = inTree.find(".//editionStmt", inTree.nsmap)
     # find subsection
     inSu = inS.find(".//edition", inTree.nsmap)
-    if len(inSu)>0:
+    if inSu is not None:
         inSu = etree.SubElement(inS, TEI + "edition", nsmap=inTree.nsmap)
 
     # check existing file
@@ -338,7 +338,7 @@ def upload2HAL(file, headers, credentials, server="preprod"):
                     content = json.loads(i.text)
                 except:
                     pass
-                if not content:
+                if content is not None:
                     content = i.text
                 json_ret.append(content)
                 Logger.warning("Error: {}".format(i.text))
@@ -635,7 +635,7 @@ def setNotes(inTree, notes):
 
 def setAbstract(inTree, abstracts):
     """Add abstract in XML (and specified language)"""
-    if not abstracts:
+    if abstracts is not None:
         Logger.warning("No provided abstract")
         return None
     nAbstract = list()
@@ -684,14 +684,14 @@ def setIDS(inTree, data):
         lID.append(setID(inTree, data.get("halJournalId"), "halJournalId"))
     if data.get("journal", None):
         lID.append(setID(inTree, data.get("j"), "j"))
-        if not data.get("halJournalId", None):
+        if data.get("halJournalId", None) is not None:
             idJ = getDataFromHAL(
                 txtsearch=data.get("journal"),
                 typeDB="journal",
                 typeI="title",
                 returnFields="docid,title_s",
             )
-            if not idJ:
+            if idJ is not None:
                 idJ = getDataFromHAL(
                     textsearch=data.get("journal"),
                     typeDB="journal",
@@ -775,7 +775,7 @@ def setConference(inTree, data):
 def setLanguage(inTree, language):
     """Set main language in XML"""
     langUsage = etree.SubElement(inTree, TEI + "langUsage")
-    if not language:
+    if languageis not None:
         Logger.warning("No language provided - force {}".format(dflt.DEFAULT_LANG_DOC))
         language = dflt.DEFAULT_LANG_DOC
     idL = etree.SubElement(langUsage, TEI + "language")
@@ -784,7 +784,7 @@ def setLanguage(inTree, language):
 
 def setKeywords(inTree, keywords):
     """Set keywords in XML (and specified language)"""
-    if not keywords:
+    if keywords is not None:
         Logger.warning("No keywords provided")
         return None
     #
@@ -813,7 +813,7 @@ def setKeywords(inTree, keywords):
 
 def setCodes(inTree, data):
     """Set classification codes"""
-    if not data:
+    if data is not None:
         Logger.warning("No classification codes provided")
         return None
     #
@@ -850,7 +850,7 @@ def setCodes(inTree, data):
 
 def getTypeDoc(typeDoc):
     """Get type of document"""
-    if not typeDoc:
+    if typeDoc is not None:
         Logger.warning("No type of document provided")
         return None
     typeDoc = typeDoc.lower()
@@ -1034,7 +1034,7 @@ def setType(inTree, typeDoc=None):
 
 def getStructType(name):
     """Try to identified the structure type from name"""
-    if not name:
+    if name is not None:
         Logger.debug("No name for structure")
         return None
     else:
@@ -1059,7 +1059,7 @@ def getStructType(name):
 
 def setAddress(inTree, address):
     """Set an address in XML"""
-    if not address:
+    if address is not None:
         Logger.debug("No address for structure")
         return None
     # different inputs address form
@@ -1072,7 +1072,7 @@ def setAddress(inTree, address):
         addressLine = address.get("line", None)
         addressCountry = address.get("country", None)
     # get country name in plain text in string
-    if not addressCountry:
+    if addressCountry is not None:
         addressCountry = m.getCountryFromText(address)
     # get country code
     addressCountryCode = m.getAlpha2Country(addressCountry)
@@ -1089,17 +1089,17 @@ def setAddress(inTree, address):
 
 def setStructure(inTree, data, id=None):
     """Set a structure in XML"""
-    if not data:
+    if data is not None:
         Logger.debug("No data for structure")
         return None
     orgType = data.get("type", None)
-    if not orgType:
+    if orgType is not None:
         orgType = getStructType(data.get("name", None))
-        if not orgType:
+        if orgType:
             orgType = dflt.DEFAULT_STRUCT_TYPE
     idS = etree.SubElement(inTree, TEI + "org")
     idS.set("type", orgType)
-    if not data.get("id", None):
+    if data.get("id", None) is not None:
         Logger.warning(
             "No id for structure {}: force manual {}".format(data.get("name", None), id)
         )
@@ -1124,7 +1124,7 @@ def setStructure(inTree, data, id=None):
 
 def setStructures(inTree, data):
     """Set all structures in XML"""
-    if not data:
+    if data is not None : 
         Logger.debug("No structures provided")
         return None
     # if no dictionary: one structure
@@ -1141,7 +1141,7 @@ def setStructures(inTree, data):
 
 def setEditors(inTree, data):
     """Set scientific editor(s) in XML"""
-    if not data:
+    if data is not None:
         Logger.debug("No scientific editor(s) provided")
         return None
     if type(data) != list:
@@ -1155,7 +1155,7 @@ def setEditors(inTree, data):
 
 def setInfoDoc(inTree, data):
     """Set info of the document (publisher, serie, volume...) in XML"""
-    if not data:
+    if data is not None:
         Logger.debug("No document info provided")
         return None
     #
@@ -1212,7 +1212,7 @@ def setInfoDoc(inTree, data):
 
 def setSeries(inTree, data):
     """Set series (book, proceedings...) in XML"""
-    if not data:
+    if data is not None:
         Logger.debug("No series provided")
         return None
     #
@@ -1228,7 +1228,7 @@ def setSeries(inTree, data):
 
 def setRef(inTree, data):
     """Set external references in XML"""
-    if not data:
+    if data is not None:
         Logger.debug("No external reference provided")
         return None
     #
