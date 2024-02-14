@@ -9,7 +9,7 @@
             "type": "debugpy",
             "request": "launch",
             "module": "push2HAL.pdf2hal",
-            "args": ["-v","examples/file.pdf"]
+            "args": ["-v","-t","Trindade2001.pdf"]
         },
         {
             "name": "Python Debugger: Module JSON2HAL",

@@ -244,6 +244,7 @@ def runPDF2HAL(
             if idhal:
                 Logger.info("Deposit on behalf of: {}".format(idhal))
                 options["idFrom"] = idhal
+            options["testMode"] = False
             if testMode:
                 options["testMode"] = True
 
