@@ -74,13 +74,6 @@ def runJSON2HAL(
 
     # build XML tree from json
     xmlData = lib.buildXML(dataJSON)
-    # validate xml structure
-    XMLstatus = lib.checkXML(xmlData)
-
-    if XMLstatus:
-        Logger.debug("XML structure is valid")
-    else:
-        Logger.warning("XML file is not valid but continue")
 
     # add PDF file if provided
     pdf_path = None
@@ -254,12 +247,6 @@ def runPDF2HAL(
             if testMode:
                 options["testMode"] = True
 
-            # check is XML is valid
-            XMLstatus = lib.checkXML(tei_content)
-            if XMLstatus:
-                Logger.debug("XML file is valid")
-            else:
-                Logger.warning("XML file is not valid but continue")
             # prepare payload to upload to HAL
             file, payload = lib.preparePayload(
                 tei_content=tei_content, 

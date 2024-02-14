@@ -127,10 +127,29 @@ def checkTitle(title):
     return title
 
 
-def writeXML(inTree, file_path):
+def checkXML(xml_tree, xsd_file_path=dflt.DEFAULT_VALIDATION_XSD, showError=True):
+    """Validate XML file with XSD"""
+    if not os.path.isfile(xsd_file_path):
+        if os.path.isfile(os.path.join(os.path.dirname(__file__), xsd_file_path)):
+            xsd_file_path = os.path.join(os.path.dirname(__file__), xsd_file_path)
+    Logger.debug("Validate XML with {}".format(xsd_file_path))
+    xmlschema_doc = etree.parse(xsd_file_path)
+    xmlschema = etree.XMLSchema(xmlschema_doc)
+    # run check
+    status = xmlschema.validate(xml_tree)
+    if not status:
+        if showError:
+            Logger.warning("XML file is not valid")
+            for error in xmlschema.error_log:
+                Logger.warning(error)
+    return status
+
+def writeXML(inTree, file_path, check=True):
     """Write XML tree to file"""
     Logger.debug("Write XML file: {}".format(file_path))
     et = inTree.getroottree()
+    if check:
+        checkXML(et)
     et.write(file_path, pretty_print=True, xml_declaration=True, encoding='utf-8')
     # f.write(etree.tostring(inTree, pretty_print=True, xml_declaration=True, encoding='utf-8'))
 

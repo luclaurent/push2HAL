@@ -180,17 +180,17 @@ def choose_from_results(
 def addFileInXML(inTree, filePath, hal_id="upload"):
     """Add new imported file in XML"""
     newFilename = dflt.DEFAULT_UPLOAD_FILE_NAME_PDF.format(hal_id)
-    Logger.debug("Copy original file to new one: {}->{}".format(filePath, newFilename))
+    Logger.debug("Copy original file to new one: {} -> {}".format(filePath, newFilename))
     shutil.copyfile(filePath, newFilename)
     # find section to add file
-    inS = inTree.find(".//editionStmt")  # , inTree.nsmap)
+    inS = inTree.find(".//editionStmt", inTree.nsmap)
     if not inS:
         newE = etree.SubElement(inTree, TEI + "editionStmt")  # , nsmap=inTree.nsmap)
         pos = inTree.find(".//titleStmt", inTree.nsmap)
         pos.addnext(newE)
         inS = inTree.find(".//editionStmt", inTree.nsmap)
     # find subsection
-    inSu = inS.find(".//edition")  # , inTree.nsmap)
+    inSu = inS.find(".//edition", inTree.nsmap)
     if not inSu:
         inSu = etree.SubElement(inS, TEI + "edition", nsmap=inTree.nsmap)
 
@@ -206,22 +206,6 @@ def addFileInXML(inTree, filePath, hal_id="upload"):
     return newFilename
 
 
-def checkXML(xml_tree, xsd_file_path=dflt.DEFAULT_VALIDATION_XSD, showError=True):
-    """Validate XML file with XSD"""
-    if not os.path.isfile(xsd_file_path):
-        if os.path.isfile(os.path.join(os.path.dirname(__file__), xsd_file_path)):
-            xsd_file_path = os.path.join(os.path.dirname(__file__), xsd_file_path)
-    Logger.debug("Validate XML with {}".format(xsd_file_path))
-    xmlschema_doc = etree.parse(xsd_file_path)
-    xmlschema = etree.XMLSchema(xmlschema_doc)
-    # run check
-    status = xmlschema.validate(xml_tree)
-    if not status:
-        if showError:
-            Logger.warning("XML file is not valid")
-            for error in xmlschema.error_log:
-                Logger.warning(error)
-    return status
 
 
 def buildZIP(xml_file_path, pdf_file_path):
@@ -230,13 +214,13 @@ def buildZIP(xml_file_path, pdf_file_path):
     tmp_dir_path = tempfile.mkdtemp()
     Logger.debug("Create temporary directory: {}".format(tmp_dir_path))
     xml_file_dst = os.path.join(tmp_dir_path, dflt.DEFAULT_UPLOAD_FILE_NAME_XML)
-    Logger.debug("Copy XML file: {}->{}".format(xml_file_path, xml_file_dst))
+    Logger.debug("Copy XML file: {} -> {}".format(xml_file_path, xml_file_dst))
     shutil.copy(xml_file_path, xml_file_dst)
-    Logger.debug("Copy PDF file: {}->{}".format(pdf_file_path, tmp_dir_path))
+    Logger.debug("Copy PDF file: {} -> {}".format(pdf_file_path, tmp_dir_path))
     shutil.copy(pdf_file_path, tmp_dir_path)
     # build zip archive
     archivePath = dflt.DEFAULT_UPLOAD_FILE_NAME_ZIP
-    Logger.debug("Create zip archive: {}".format(archivePath + "zip"))
+    Logger.debug("Create zip archive: {}".format(archivePath + ".zip"))
     shutil.make_archive(archivePath, "zip", tmp_dir_path)
     return archivePath + ".zip"
 
@@ -349,12 +333,20 @@ def upload2HAL(file, headers, credentials, server="preprod"):
         if len(elem) > 0:
             json_ret = list()
             for i in elem:
-                json_ret.append(json.loads(i.text))
+                content = None
+                try:
+                    content = json.loads(i.text)
+                except:
+                    pass
+                if not content:
+                    content = i.text
+                json_ret.append(content)
                 Logger.warning("Error: {}".format(i.text))
         # extract hal_id
         for j in json_ret:
-            if j.get('duplicate-entry'):
-                hal_id = list(j.get('duplicate-entry').keys())[0]
+            if type(j) is dict:
+                if j.get('duplicate-entry'):
+                    hal_id = list(j.get('duplicate-entry').keys())[0]
     return hal_id
 
 def setTitles(nInTree, titles, subTitles=None):
@@ -588,21 +580,21 @@ def setNotes(inTree, notes):
     NOTE: additionnal notes are supported by HAL but not included here
 
     INCLUDED:
-        <note type="commentary"><!-- %%comment --></note>
-        <note type="description"><!-- %%description --></note>
-        <note type="audience" n="2"/><!-- %%audience : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:audience&fl=*&wt=xml -->
-        <note type="invited" n="1"/><!-- %%invitedCommunication : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:invitedCommunication&fl=*&wt=xml -->
-        <note type="popular" n="0"/><!-- %%popularLevel : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:popularLevel&fl=*&wt=xml -->
-        <note type="peer" n="0"/><!-- %%peerReviewing : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:peerReviewing&fl=*&wt=xml -->
-        <note type="proceedings" n="1"/><!-- %%proceedings : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:proceedings&fl=*&wt=xml -->
+        <note type="commentary"><!-- %%comment - -> </note>
+        <note type="description"><!-- %%description - -> </note>
+        <note type="audience" n="2"/><!-- %%audience : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:audience&fl=*&wt=xml - -> 
+        <note type="invited" n="1"/><!-- %%invitedCommunication : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:invitedCommunication&fl=*&wt=xml - -> 
+        <note type="popular" n="0"/><!-- %%popularLevel : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:popularLevel&fl=*&wt=xml - -> 
+        <note type="peer" n="0"/><!-- %%peerReviewing : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:peerReviewing&fl=*&wt=xml - -> 
+        <note type="proceedings" n="1"/><!-- %%proceedings : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:proceedings&fl=*&wt=xml - -> 
 
     NOT INCLUDED:
-        <note type="report" n="6"/><!-- %%reportType : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:reportType&fl=*&wt=xml -->
-        <note type="other" n="crOuv"/><!-- %%otherType : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:otherType&fl=*&wt=xml -->
-        <note type="image" n="3"/><!-- %%imageType : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:imageType&fl=*&wt=xml -->
-        <note type="lecture" n="13"/><!-- %%lectureType : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:lectureType&fl=*&wt=xml -->
-        <note type="pastel_thematique" n="3"/><!-- %%pastel_thematique : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:pastel_thematique&fl=*&wt=xml -->
-        <note type="pastel_library" n="7"/><!-- %%pastel_library : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:pastel_library&fl=*&wt=xml -->
+        <note type="report" n="6"/><!-- %%reportType : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:reportType&fl=*&wt=xml - -> 
+        <note type="other" n="crOuv"/><!-- %%otherType : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:otherType&fl=*&wt=xml - -> 
+        <note type="image" n="3"/><!-- %%imageType : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:imageType&fl=*&wt=xml - -> 
+        <note type="lecture" n="13"/><!-- %%lectureType : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:lectureType&fl=*&wt=xml - -> 
+        <note type="pastel_thematique" n="3"/><!-- %%pastel_thematique : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:pastel_thematique&fl=*&wt=xml - -> 
+        <note type="pastel_library" n="7"/><!-- %%pastel_library : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:pastel_library&fl=*&wt=xml - -> 
 
     """
     nNotes = list()
