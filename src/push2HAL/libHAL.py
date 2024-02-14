@@ -184,7 +184,7 @@ def addFileInXML(inTree, filePath, hal_id="upload"):
     shutil.copyfile(filePath, newFilename)
     # find section to add file
     inS = inTree.find(".//editionStmt", inTree.nsmap)
-    if inS is not None
+    if inS is not None:
         newE = etree.SubElement(inTree, TEI + "editionStmt")  # , nsmap=inTree.nsmap)
         pos = inTree.find(".//titleStmt", inTree.nsmap)
         pos.addnext(newE)
