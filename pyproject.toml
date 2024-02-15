@@ -45,8 +45,31 @@ version-file = "src/push2HAL/version.py"
 
 [tool.hatch.build.targets.sdist]
 exclude = [
-  "/.github",
-  "/.vscode",
+  "deploy.sh",
+  ".gitignore",
+  ".github",
+  ".vscode",
+  "examples/use-cases/json",
+  "examples/use-cases/data",
+  "examples/use-cases/*.pdf",
+  "examples/use-cases/*.zip",
+  "examples/use-cases/.*",
+  "examples/*.xml",
+  "*.pdf",
+  "*.xml",
+  "*.zip",
+  ".apihal"
+  ]
+include = [
+  "src",
+  "tests",
+  "references",
+  "examples/use-cases/*.py",
+  "examples/use-cases/*.py",
+  "examples/.apihal_example",
+  "examples/test.json",
+  "examples/test_comments.json",
+  "examples/file.pdf",
 ]
 
 
@@ -66,3 +89,5 @@ cov = 'pytest tests --cov-report=term-missing --cov-config=pyproject.toml --cov=
 
 [[tool.hatch.envs.test.matrix]]
 python = ["3.8", "3.9", "3.10", "3.11"]
+
+
