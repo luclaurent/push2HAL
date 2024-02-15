@@ -121,7 +121,7 @@ if False:
             idHal = execHAL.runJSON2HAL(
                 json_file,
                 verbose=True,
-                prod="prod",
+                prod="test", # switch to prod with caution
                 credentials=misc.load_credentials(),#
                 completion="idext,affiliation", # or false
                 idhal=None,
@@ -138,8 +138,9 @@ if False:
     
 # add pdf to HAL      
 if True:
-    import glob
+    import glob,shutil
     jsondir = 'json'
+    pathlib.Path(os.path.join(saveDir,"done")).mkdir(parents=True, exist_ok=True)
     for file in glob.glob(os.path.join(jsondir, "*.json")):
         data = json.loads(open(file).read())
         # add pdf
@@ -147,11 +148,13 @@ if True:
             execHAL.runPDF2HAL(
                 os.path.join(jsondir,data.get("fileTmp")),
                 verbose=True,
-                prod="test",
+                prod="prod",
                 credentials=misc.load_credentials(),
                 completion=None,
                 halid=data.get("doc_idhal"),
                 idhal=None,
                 interaction=False)
+            # move to done
+            shutil.move(file,os.path.join(jsondir,"done",os.path.basename(file)))
             
             
