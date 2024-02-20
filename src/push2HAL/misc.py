@@ -165,7 +165,12 @@ def cleanXML(inTree, xmlPath=None):
 
 def extract_info(pdf_path):
     Logger.debug("Extract title from PDF file: {}".format(pdf_path))
-    title = titleFromPdf(pdf_path)
+    try:
+        title = titleFromPdf(pdf_path)
+    except Exception as e:
+        Logger.error("Error: {}".format(e))
+        Logger.error("Unable to get pdf title")
+        title = None
     return title
 
 

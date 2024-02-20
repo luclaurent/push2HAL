@@ -145,16 +145,17 @@ if True:
         data = json.loads(open(file).read())
         # add pdf
         if data.get("doc_idhal") and data.get("fileTmp"):
-            execHAL.runPDF2HAL(
+            status = execHAL.runPDF2HAL(
                 os.path.join(jsondir,data.get("fileTmp")),
                 verbose=True,
                 prod="prod",
                 credentials=misc.load_credentials(),
-                completion=None,
+                completion='grobid,idext,affiliation',
                 halid=data.get("doc_idhal"),
                 idhal=None,
                 interaction=False)
             # move to done
-            shutil.move(file,os.path.join(jsondir,"done",os.path.basename(file)))
+            if str(status).startswith("hal-"):
+                shutil.move(file,os.path.join(jsondir,"done",os.path.basename(file)))
             
             

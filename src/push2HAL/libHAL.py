@@ -309,9 +309,14 @@ def upload2HAL(file, headers, credentials, server="preprod"):
     )
     
      
-    hal_id = None
+    hal_id = res.status_code
     if res.status_code == 201:
         Logger.info("Successfully upload to HAL.")
+        # read return message
+        xmlResponse = etree.fromstring(res.text.encode("utf-8"))
+        elem = xmlResponse.findall("id", xmlResponse.nsmap)
+        hal_id = elem[0].text
+        Logger.debug("HAL ID: {}".format(elem[0].text))
     elif res.status_code == 202:
         Logger.info("Note accepted by HAL.")
         # read return message
@@ -346,6 +351,22 @@ def upload2HAL(file, headers, credentials, server="preprod"):
                 if j.get('duplicate-entry'):
                     hal_id = list(j.get('duplicate-entry').keys())[0]
     return hal_id
+
+def manageError(e):
+    """ Manage return code from upload2HAL """
+    if e == 201:
+        # Logger.info("Successfully upload to HAL.")
+        pass
+    elif e == 202:
+        # Logger.info("Note accepted by HAL.")
+        pass
+    elif e == 401:
+        # Logger.info("Authentification refused - check credentials")
+        e = os.EX_SOFTWARE
+    elif e == 400:
+        # Logger.info("Internal error - check XML file")
+        e = os.EX_SOFTWARE
+    return e
 
 def setTitles(nInTree, titles, subTitles=None):
     """Add title(s) and subtitle(s) in XML (and specified language)"""
