@@ -236,7 +236,7 @@ def preparePayload(
     """Prepare payload for HAL deposit"""
     # clean XML
     if pdf_path:
-        m.cleanXML(tei_content, ".//idno[@type='stamp']")
+        # m.cleanXML(tei_content, ".//idno[@type='stamp']")
         # declare new file as target in xml
         newPDF = addFileInXML(tei_content, pdf_path, hal_id)
     # write xml file

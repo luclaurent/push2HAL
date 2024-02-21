@@ -150,7 +150,7 @@ if True:
                 verbose=True,
                 prod="prod",
                 credentials=misc.load_credentials(),
-                completion='grobid,idext,affiliation',
+                completion=False, #'grobid,idext,affiliation', # if Internal error on upload use False
                 halid=data.get("doc_idhal"),
                 idhal=None,
                 interaction=False)
