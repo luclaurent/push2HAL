@@ -9,7 +9,7 @@
 ####*****************************************************************************************
 
 
-import logging
+from loguru import logger as Logger
 import curses
 import time
 import os
@@ -20,8 +20,6 @@ from . import default as dflt
 from lxml import etree
 from pdftitle import get_title_from_file as titleFromPdf
 import pycountry as pc
-
-Logger = logging.getLogger("push2HAL")
 
 
 def input_char(message):

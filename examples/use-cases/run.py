@@ -16,7 +16,7 @@ logging.basicConfig(format=FORMAT)
 saveDir = "data"
 pathlib.Path(saveDir).mkdir(parents=True, exist_ok=True)
 
-if False:
+if True:
     # get full list of papers in journal
     with open('.api_springer','r') as f: 
         api_key = f.read()
@@ -62,7 +62,7 @@ if False:
                 )
             )
 
-if False:
+if True:
     # load pickle
     article_list = pickle.load(
         open(os.path.join(saveDir, "article_list.pck"), "rb")
@@ -82,7 +82,7 @@ if False:
     pickle.dump(article_list_collection, file)
     file.close()
 
-if False:
+if True:
     # load pickle
     article_list_collection = pickle.load(
         open(os.path.join(saveDir, "article_list_collection.pck"), "rb")
@@ -106,7 +106,7 @@ if False:
     print("Articles in HAL: {}".format(len(article_list_in_hal)))
     print("Articles not in HAL: {}".format(len(article_list_notin_hal)))
 
-if False:
+if True:
     # load pickle
     article_list = pickle.load(
         open(os.path.join(saveDir, "article_list_notin_hal.pck"), "rb")

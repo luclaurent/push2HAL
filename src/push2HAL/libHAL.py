@@ -9,8 +9,8 @@
 ####*****************************************************************************************
 
 
-import logging
-import os
+from loguru import logger
+import os,sys
 import shutil
 import tempfile
 import requests
@@ -25,162 +25,28 @@ from stdnum import isbn, issn
 from . import default as dflt
 from . import misc as m
 
-Logger = logging.getLogger("push2HAL")
+## create a custom logger
+logger_format = (
+    "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
+    "<level>{level: <8}</level> |"
+    "<red>PUSH2HAL</red> |"
+    "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
+    "{extra[ip]} {extra[user]} - <level>{message}</level>"
+)
+
+logger.remove()
+logger.add(sys.stderr, format=logger_format)
 
 
 ## get XML's namespace for everything
 TEI = "{%s}" % dflt.DEFAULT_TEI_URL_NAMESPACE
 
 
-def getDataFromHAL(
-    txtsearch=None,
-    typeI=None,
-    typeDB="article",
-    typeR="json",
-    returnFields="title_s,author_s,halId_s,label_s,docid",
-    url=dflt.HAL_API_SEARCH_URL,
-):
-    """Search for a title in HAL archives"""
-    if typeDB:
-        Logger.debug("Searching in database: {}".format(typeDB))
-        if typeDB == "journal":
-            url = dflt.HAL_API_JOURNAL_URL
-        elif typeDB == "article":
-            url = dflt.HAL_API_SEARCH_URL
-        elif typeDB == "anrproject":
-            url = dflt.HAL_API_ANR_URL
-        elif typeDB == "authorstruct":
-            url = dflt.HAL_API_AUTHORSTRUCT_URL
-        elif typeDB == "europeanproject":
-            url = dflt.HAL_API_EUROPPROJ_URL
-        elif typeDB == "doc":
-            url = dflt.HAL_API_DOC_URL
-        elif typeDB == "domain":
-            url = dflt.HAL_API_DOMAIN_URL
-        elif typeDB == "instance":
-            url = dflt.HAL_API_INSTANCE_URL
-        elif typeDB == "metadata":
-            url = dflt.HAL_API_METADATA_URL
-        elif typeDB == "metadatalist":
-            url = dflt.HAL_API_METADATALIST_URL
-        elif typeDB == "structure":
-            url = dflt.HAL_API_STRUCTURE_URL
-        else:
-            Logger.warning("Unknown database: {}".format(typeDB))
-
-    if typeI == "title":
-        Logger.debug("Searching for title: {}".format(txtsearch.lower()))
-        query = "title_t:{}".format(txtsearch.lower())
-    elif typeI == "title_approx":
-        Logger.debug("Searching for approximated title: {}".format(txtsearch.lower()))
-        query = "title_s:{}".format(txtsearch.lower())
-    elif typeI == "docId":
-        Logger.debug("Searching for document's ID: {}".format(txtsearch))
-        query = "halId_s:{}".format(txtsearch)
-    elif typeI == "doi":
-        Logger.debug("Searching for document's doi: {}".format(txtsearch))
-        query = "doiId_id:{}".format(txtsearch)
-    #
-    Logger.debug("Return format: {}".format(typeR))
-
-    params = {
-        "q": query,
-        "fl": returnFields,
-        "wt": typeR,
-        "rows": dflt.DEFAULT_MAX_NUMBER_RESULTS_QUERY,  # Adjust the number of rows based on your preference
-    }
-    # request and get response
-    response = requests.get(url, params=params)
-
-    if response.status_code == 200:
-        if typeR == "json":
-            data = response.json().get("response", {}).get("docs", [])
-        elif typeR == "xml-tei":
-            data = response.text
-            # declare namespace
-            # key, value = list(dflt.DEFAULT_NAMESPACE_XML.items())[0]
-            # etree.register_namespace(key, value)
-            return etree.fromstring(data.encode("utf-8"))
-        return data
-    return []
-
-def checkDoiInHAL(doi):
-    """ Check if DOI is already in HAL """
-    # request
-    dataFromHAL = getDataFromHAL(txtsearch=doi,
-                                    typeI='doi',
-                                    typeDB="article",
-                                    typeR="json")
-    return_code = False
-    if dataFromHAL:
-        if len(dataFromHAL) > 0:
-                return_code = True
-    return return_code
-
-
-def choose_from_results(
-    results, forceSelection=False, maxNumber=dflt.DEFAULT_MAX_NUMBER_RESULTS
-):
-    """Select result from a list of results"""
-    Logger.info(dflt.TXT_SEP)
-    Logger.info("Multiple results found:")
-    # lambda show info
-    funShow = lambda x, y: "[{}/{}]. {} - {}".format(
-        x + 1, len(results), y.get("label_s", "N/A"), result.get("halId_s", "N/A")
-    )
-    #
-    lastposition = 0
-    for i, result in enumerate(results):
-        # print only the first maxNumber results
-        if i < maxNumber:
-            Logger.info(funShow(i, result))
-            lastposition = i
-        else:
-            break
-
-    Logger.info(
-        "Select a number to view details (0 to skip or p/n for previous/next selection or m for manual definition): "
-    )
-
-    choiceOK = False
-    while not choiceOK:
-        if forceSelection:
-            choice = "1"
-            choiceOK = True
-        else:
-            choice = input(" > ")
-
-        if choice.isdigit() and 0 <= int(choice) <= len(results):
-            selected_result = results[int(choice) - 1]
-            return selected_result
-        elif choice == "m":
-            Logger.info("Provide title manually")
-            manualTitle = input(" > ")
-            return manualTitle
-        elif choice == "p":
-            Logger.info("Previous selection")
-            if lastposition - 1 >= 0:
-                lastposition -= 1
-            else:
-                Logger.warning("No previous selection.")
-            Logger.info(funShow(lastposition, results[lastposition]))
-        elif choice == "n":
-            Logger.info("Next selection")
-            if lastposition + 1 < len(results):
-                lastposition += 1
-            else:
-                Logger.warning("No next selection.")
-            Logger.info(funShow(lastposition, results[lastposition]))
-        else:
-            Logger.warning("Invalid choice.")
-
-    return None
-
 
 def addFileInXML(inTree, filePath, hal_id="upload"):
     """Add new imported file in XML"""
     newFilename = dflt.DEFAULT_UPLOAD_FILE_NAME_PDF.format(hal_id)
-    Logger.debug("Copy original file to new one: {} -> {}".format(filePath, newFilename))
+    logger.debug("Copy original file to new one: {} -> {}".format(filePath, newFilename))
     shutil.copyfile(filePath, newFilename)
     # find section to add file
     inS = inTree.find(".//editionStmt", inTree.nsmap)
@@ -197,7 +63,7 @@ def addFileInXML(inTree, filePath, hal_id="upload"):
     # check existing file
     # nFile = inS.xpath("//ref[@type='file']") #find('.//ref',inTree.nsmap)
     # add file
-    Logger.debug("Add file in XML: {}".format(newFilename))
+    logger.debug("Add file in XML: {}".format(newFilename))
     nFile = etree.SubElement(inSu, TEI + "ref", nsmap=inTree.nsmap)
     nFile.set("type", "file")
     nFile.set("subtype", "author")
@@ -212,15 +78,15 @@ def buildZIP(xml_file_path, pdf_file_path):
     """Build ZIP archive for HAL deposit (containing XML and PDF)"""
     # create temporary directory
     tmp_dir_path = tempfile.mkdtemp()
-    Logger.debug("Create temporary directory: {}".format(tmp_dir_path))
+    logger.debug("Create temporary directory: {}".format(tmp_dir_path))
     xml_file_dst = os.path.join(tmp_dir_path, dflt.DEFAULT_UPLOAD_FILE_NAME_XML)
-    Logger.debug("Copy XML file: {} -> {}".format(xml_file_path, xml_file_dst))
+    logger.debug("Copy XML file: {} -> {}".format(xml_file_path, xml_file_dst))
     shutil.copy(xml_file_path, xml_file_dst)
-    Logger.debug("Copy PDF file: {} -> {}".format(pdf_file_path, tmp_dir_path))
+    logger.debug("Copy PDF file: {} -> {}".format(pdf_file_path, tmp_dir_path))
     shutil.copy(pdf_file_path, tmp_dir_path)
     # build zip archive
     archivePath = dflt.DEFAULT_UPLOAD_FILE_NAME_ZIP
-    Logger.debug("Create zip archive: {}".format(archivePath + ".zip"))
+    logger.debug("Create zip archive: {}".format(archivePath + ".zip"))
     shutil.make_archive(archivePath, "zip", tmp_dir_path)
     return archivePath + ".zip"
 
@@ -263,7 +129,7 @@ def preparePayload(
     header["Packaging"] = m.adaptH(dflt.DEFAULT_XML_SWORD_PACKAGING)
     header["X-test"] = m.adaptH(options.get("testMode", dflt.DEFAULT_HAL_TEST))
     if header["X-test"] == "1":
-        Logger.warning("Test mode activated")
+        logger.warning("Test mode activated")
     if pdf_path:
         header["Content-Type"] = m.adaptH("application/zip")
         header["Export-To-Arxiv"] = m.adaptH(
@@ -287,16 +153,16 @@ def preparePayload(
 
 def upload2HAL(file, headers, credentials, server="preprod"):
     """Upload to HAL"""
-    Logger.info("Upload to HAL")
-    Logger.debug("File: {}".format(file))
-    Logger.debug("Headers: {}".format(headers))
+    logger.info("Upload to HAL")
+    logger.debug("File: {}".format(file))
+    logger.debug("Headers: {}".format(headers))
 
     if server == "preprod":
         url = dflt.HAL_SWORD_PRE_API_URL
     else:
         url = dflt.HAL_SWORD_API_URL
 
-    Logger.debug("Upload via {}".format(url))
+    logger.debug("Upload via {}".format(url))
     # read data to sent
     with open(file, "rb") as f:
         data = f.read()
@@ -311,28 +177,28 @@ def upload2HAL(file, headers, credentials, server="preprod"):
      
     hal_id = res.status_code
     if res.status_code == 201:
-        Logger.info("Successfully upload to HAL.")
+        logger.info("Successfully upload to HAL.")
         # read return message
         xmlResponse = etree.fromstring(res.text.encode("utf-8"))
         elem = xmlResponse.findall("id", xmlResponse.nsmap)
         hal_id = elem[0].text
-        Logger.debug("HAL ID: {}".format(elem[0].text))
+        logger.debug("HAL ID: {}".format(elem[0].text))
     elif res.status_code == 202:
-        Logger.info("Note accepted by HAL.")
+        logger.info("Note accepted by HAL.")
         # read return message
         xmlResponse = etree.fromstring(res.text.encode("utf-8"))
         elem = xmlResponse.findall("id", xmlResponse.nsmap)
         hal_id = elem[0].text
-        Logger.debug("HAL ID: {}".format(elem[0].text))
+        logger.debug("HAL ID: {}".format(elem[0].text))
     elif res.status_code == 401:
-        Logger.info("Authentification refused - check credentials")
+        logger.info("Authentification refused - check credentials")
     else:
         # read error message
         xmlResponse = etree.fromstring(res.text.encode("utf-8"))
         elem = xmlResponse.findall(
             dflt.DEFAULT_ERROR_DESCRIPTION_SWORD_LOC, xmlResponse.nsmap
         )
-        Logger.error("Failed to upload. Status code: {}".format(res.status_code))
+        logger.error("Failed to upload. Status code: {}".format(res.status_code))
         if len(elem) > 0:
             json_ret = list()
             for i in elem:
@@ -344,7 +210,7 @@ def upload2HAL(file, headers, credentials, server="preprod"):
                 if content is None:
                     content = i.text
                 json_ret.append(content)
-                Logger.warning("Error: {}".format(i.text))
+                logger.warning("Error: {}".format(i.text))
         # extract hal_id
         for j in json_ret:
             if type(j) is dict:
@@ -355,16 +221,16 @@ def upload2HAL(file, headers, credentials, server="preprod"):
 def manageError(e):
     """ Manage return code from upload2HAL """
     if e == 201:
-        # Logger.info("Successfully upload to HAL.")
+        # logger.info("Successfully upload to HAL.")
         pass
     elif e == 202:
-        # Logger.info("Note accepted by HAL.")
+        # logger.info("Note accepted by HAL.")
         pass
     elif e == 401:
-        # Logger.info("Authentification refused - check credentials")
+        # logger.info("Authentification refused - check credentials")
         e = os.EX_SOFTWARE
     elif e == 400:
-        # Logger.info("Internal error - check XML file")
+        # logger.info("Internal error - check XML file")
         e = os.EX_SOFTWARE
     return e
 
@@ -384,7 +250,7 @@ def setTitles(nInTree, titles, subTitles=None):
                 nTitle[-1].set(dflt.DEFAULT_XML_LANG + "lang", l)
                 nTitle[-1].text = t
         else:
-            Logger.warning("No language for title: force english")
+            logger.warning("No language for title: force english")
             nTitle.append(etree.SubElement(nInTree, TEI + "title"))
             if k == "subtitles":
                 nTitle[-1].set("type", "sub")
@@ -413,7 +279,7 @@ def setAuthors(inTree, authors):
         if "role" in a:
             nAuthors[-1].set("role", a["role"])
         else:
-            Logger.warning(
+            logger.warning(
                 "No role for author {} {}: force aut".format(
                     nameFormated[0], nameFormated[-1]
                 )
@@ -490,7 +356,7 @@ def setLicence(inTree, licence):
         licenceV = licence["licence"]
     else:
         licenceV = licence
-    Logger.warning("licence: {} (works only for Creative Commons one)".format(licenceV))
+    logger.warning("licence: {} (works only for Creative Commons one)".format(licenceV))
     lic_cc.set("target", dflt.ID_CC_URL + "/" + licenceV + "/")
 
 
@@ -521,7 +387,7 @@ def getAudience(notes):
         and str(audienceFlag) != "2"
         and str(audienceFlag) != "3"
     ):
-        Logger.warning(
+        logger.warning(
             "Unknown audience: force default ({})".format(dflt.DEFAULT_AUDIENCE)
         )
         audienceFlag = dflt.DEFAULT_AUDIENCE
@@ -537,7 +403,7 @@ def getInvited(notes):
     elif str(invitedFlag).lower().startswith(("n", "0", "f")):
         invitedFlag = "0"
     if str(invitedFlag) != "0" and str(invitedFlag) != "1":
-        Logger.warning(
+        logger.warning(
             "Unknown invited: force default ({})".format(dflt.DEFAULT_INVITED)
         )
         invitedFlag = dflt.DEFAULT_INVITED
@@ -553,7 +419,7 @@ def getPopular(notes):
     elif str(popFlag).lower().startswith(("n", "0", "f")):
         popFlag = "0"
     if str(popFlag) != "0" and str(popFlag) != "1":
-        Logger.warning(
+        logger.warning(
             "Unknown popular level: force default ({})".format(dflt.DEFAULT_POPULAR)
         )
         popFlag = dflt.DEFAULT_POPULAR
@@ -569,7 +435,7 @@ def getPeer(notes):
     elif str(peerFlag).lower().startswith(("n", "0", "f")):
         peerFlag = "0"
     if str(peerFlag) != "0" and str(peerFlag) != "1":
-        Logger.warning(
+        logger.warning(
             "Unknown peer reviewing type: force default ({})".format(dflt.DEFAULT_PEER)
         )
         peerFlag = dflt.DEFAULT_PEER
@@ -585,7 +451,7 @@ def getProceedings(notes):
     elif str(proFlag).lower().startswith(("n", "0", "f")):
         proFlag = "0"
     if str(proFlag) != "0" and str(proFlag) != "1":
-        Logger.warning(
+        logger.warning(
             "Unknown proceedings status: force default ({})".format(
                 dflt.DEFAULT_PROCEEDINGS
             )
@@ -655,11 +521,11 @@ def setNotes(inTree, notes):
 def setAbstract(inTree, abstracts):
     """Add abstract in XML (and specified language)"""
     if abstracts is None:
-        Logger.warning("No provided abstract")
+        logger.warning("No provided abstract")
         return None
     nAbstract = list()
     if type(abstracts) == str():
-        Logger.warning("No language for abstract: force english")
+        logger.warning("No language for abstract: force english")
         nAbstract.append(etree.SubElement(inTree, TEI + "abstract"))
         nAbstract[-1].set(dflt.DEFAULT_XML_LANG + "lang", "en")
         nAbstract[-1].text = abstracts
@@ -691,7 +557,7 @@ def setIDS(inTree, data):
         lID.append(setID(inTree, data.get("nnt"), "nnt"))
     if data.get("isbn", None):
         if not isbn.is_valid(data.get("isbn")):
-            Logger.warning("ISBN not valid: {}, continue...".format(data.get("isbn")))
+            logger.warning("ISBN not valid: {}, continue...".format(data.get("isbn")))
         lID.append(setID(inTree, data.get("isbn"), "isbn"))
     if data.get("patentNumber", None):
         lID.append(setID(inTree, data.get("patentNumber"), "patentNumber"))
@@ -720,21 +586,21 @@ def setIDS(inTree, data):
             # adapt id if many are found
             idJournal = None
             if len(idJ) > 1:
-                Logger.debug("Identify write journal ID in HAL")
+                logger.debug("Identify write journal ID in HAL")
                 listJ = [j["title_s"] for j in idJ]
                 jName = difflib.get_close_matches(data.get("journal"), listJ)
                 ixJ = listJ.index(jName[0])
                 idJournal = idJ[ixJ]["docid"]
             if idJournal:
-                Logger.debug("Jounal ID found: {}".format(idJournal))
+                logger.debug("Jounal ID found: {}".format(idJournal))
                 lID.append(setID(inTree, idJournal, "halJournalId"))
     if data.get("issn", None):
         if not issn.is_valid(data.get("issn")):
-            Logger.warning("ISSN not valid: {}, continue...".format(data.get("issn")))
+            logger.warning("ISSN not valid: {}, continue...".format(data.get("issn")))
     lID.append(setID(inTree, data.get("issn"), "issn"))
     if data.get("eissn", None):
         if not issn.validate(data.get("eissn")):
-            Logger.warning("eISSN not valid: {}, continue...".format(data.get("eissn")))
+            logger.warning("eISSN not valid: {}, continue...".format(data.get("eissn")))
     lID.append(setID(inTree, data.get("eissn"), "eissn"))
     if data.get("j", None):
         lID.append(inTree.SubElement(inTree, TEI + "title"))
@@ -795,7 +661,7 @@ def setLanguage(inTree, language):
     """Set main language in XML"""
     langUsage = etree.SubElement(inTree, TEI + "langUsage")
     if language is None:
-        Logger.warning("No language provided - force {}".format(dflt.DEFAULT_LANG_DOC))
+        logger.warning("No language provided - force {}".format(dflt.DEFAULT_LANG_DOC))
         language = dflt.DEFAULT_LANG_DOC
     idL = etree.SubElement(langUsage, TEI + "language")
     idL.set("ident", language)
@@ -804,7 +670,7 @@ def setLanguage(inTree, language):
 def setKeywords(inTree, keywords):
     """Set keywords in XML (and specified language)"""
     if keywords is None:
-        Logger.warning("No keywords provided")
+        logger.warning("No keywords provided")
         return None
     #
     if type(keywords) == str:
@@ -812,7 +678,7 @@ def setKeywords(inTree, keywords):
     itK = etree.SubElement(inTree, TEI + "keywords")
     itK.set("scheme", "author")
     if type(keywords) == list():
-        Logger.warning("No language for keywords: force english")
+        logger.warning("No language for keywords: force english")
         nKeywords = list()
         for k in keywords:
             nKeywords.append(etree.SubElement(inTree, TEI + "keyword"))
@@ -833,7 +699,7 @@ def setKeywords(inTree, keywords):
 def setCodes(inTree, data):
     """Set classification codes"""
     if data is None:
-        Logger.warning("No classification codes provided")
+        logger.warning("No classification codes provided")
         return None
     #
     idS = list()
@@ -870,7 +736,7 @@ def setCodes(inTree, data):
 def getTypeDoc(typeDoc):
     """Get type of document"""
     if typeDoc is None:
-        Logger.warning("No type of document provided")
+        logger.warning("No type of document provided")
         return None
     typeDoc = typeDoc.lower()
     if (
@@ -1038,7 +904,7 @@ def getTypeDoc(typeDoc):
     elif typeDoc == "synthese" or typeDoc == "notesynthese":  # notes de synthèse
         return "SYNTHESE"
     else:
-        Logger.warning("Unknown type of document: force article")
+        logger.warning("Unknown type of document: force article")
         return "ART"
 
 
@@ -1054,7 +920,7 @@ def setType(inTree, typeDoc=None):
 def getStructType(name):
     """Try to identified the structure type from name"""
     if name is None:
-        Logger.debug("No name for structure")
+        logger.debug("No name for structure")
         return None
     else:
         name = unidecode(name.lower())  # remove accent and get lower case
@@ -1079,7 +945,7 @@ def getStructType(name):
 def setAddress(inTree, address):
     """Set an address in XML"""
     if address is None:
-        Logger.debug("No address for structure")
+        logger.debug("No address for structure")
         return None
     # different inputs address form
     addressLine = None
@@ -1110,7 +976,7 @@ def setAddress(inTree, address):
 def setStructure(inTree, data, id=None):
     """Set a structure in XML"""
     if data is None:
-        Logger.debug("No data for structure")
+        logger.debug("No data for structure")
         return None
     orgType = data.get("type", None)
     if orgType is None:
@@ -1120,7 +986,7 @@ def setStructure(inTree, data, id=None):
     idS = etree.SubElement(inTree, TEI + "org")
     idS.set("type", orgType)
     if data.get("id", None) is None:
-        Logger.warning(
+        logger.warning(
             "No id for structure {}: force manual {}".format(data.get("name", None), id)
         )
     idS.set(dflt.DEFAULT_XML_LANG + "id", "localStruct-" + data.get("id", str(id)))
@@ -1145,7 +1011,7 @@ def setStructure(inTree, data, id=None):
 def setStructures(inTree, data):
     """Set all structures in XML"""
     if data is None : 
-        Logger.debug("No structures provided")
+        logger.debug("No structures provided")
         return None
     # if no dictionary: one structure
     if type(data) != list:
@@ -1162,7 +1028,7 @@ def setStructures(inTree, data):
 def setEditors(inTree, data):
     """Set scientific editor(s) in XML"""
     if data is None:
-        Logger.debug("No scientific editor(s) provided")
+        logger.debug("No scientific editor(s) provided")
         return None
     if type(data) != list:
         data = [data]
@@ -1176,7 +1042,7 @@ def setEditors(inTree, data):
 def setInfoDoc(inTree, data):
     """Set info of the document (publisher, serie, volume...) in XML"""
     if data is None:
-        Logger.debug("No document info provided")
+        logger.debug("No document info provided")
         return None
     #
     listId = list()
@@ -1233,7 +1099,7 @@ def setInfoDoc(inTree, data):
 def setSeries(inTree, data):
     """Set series (book, proceedings...) in XML"""
     if data is None:
-        Logger.debug("No series provided")
+        logger.debug("No series provided")
         return None
     #
     listId = list()
@@ -1249,7 +1115,7 @@ def setSeries(inTree, data):
 def setRef(inTree, data):
     """Set external references in XML"""
     if data is None:
-        Logger.debug("No external reference provided")
+        logger.debug("No external reference provided")
         return None
     #
     items = [
@@ -1287,7 +1153,7 @@ def setRef(inTree, data):
 
 def buildXML(data):
     """Build the XML file from data"""
-    Logger.debug("Open XML tree with namespace")
+    logger.debug("Open XML tree with namespace")
 
     # for k,v in dflt.DEFAULT_NAMESPACE_XML.items():
     #     if not k:
@@ -1297,76 +1163,76 @@ def buildXML(data):
     tei = etree.Element(TEI + "TEI", nsmap=dflt.DEFAULT_NAMESPACE_XML)
     # tei.set("xmlns","http://www.tei-c.org/ns/1.0")
     # tei.set("xmlns:hal","http://hal.archives-ouvertes.fr/")
-    Logger.debug("Add first elements")
+    logger.debug("Add first elements")
     text = etree.SubElement(tei, TEI + "text")
     body = etree.SubElement(text, TEI + "body")
     listBibl = etree.SubElement(body, TEI + "listBibl")
     biblFull = etree.SubElement(listBibl, TEI + "biblFull")
-    Logger.debug("Start to add metadata")
+    logger.debug("Start to add metadata")
     # add title(s)/author
-    Logger.debug("Add title(s) 1/2")
+    logger.debug("Add title(s) 1/2")
     titleStmt = etree.SubElement(biblFull, TEI + "titleStmt")
     title = setTitles(titleStmt, data.get("title", None), data.get("subtitle", None))
-    Logger.debug("Add authors 1/2")
+    logger.debug("Add authors 1/2")
     authors = setAuthors(titleStmt, data.get("authors", None))
     # # add file
     # if data.get('file',None):
-    #     Logger.debug('Add file')
+    #     logger.debug('Add file')
     #     addFileInXML(biblFull,data.get('file'))
     # add licence
     if data.get("licence", None):
-        Logger.debug("Add licence")
+        logger.debug("Add licence")
         publicationStmt = etree.SubElement(biblFull, TEI + "publicationStmt")
         setLicence(publicationStmt, data.get("licence"))
     # add notes
     if data.get("notes", None):
-        Logger.debug("Add notes")
+        logger.debug("Add notes")
         setNotes(biblFull, data.get("notes"))
     ## new section
     sourceDesc = etree.SubElement(biblFull, TEI + "sourceDesc")
     biblStruct = etree.SubElement(sourceDesc, TEI + "biblStruct")
     analytic = etree.SubElement(biblStruct, TEI + "analytic")
     # add title(s)
-    Logger.debug("Add title(s) 2/2")
+    logger.debug("Add title(s) 2/2")
     titleB = setTitles(analytic, data.get("title", None), data.get("subtitle", None))
-    Logger.debug("Add authors 2/2")
+    logger.debug("Add authors 2/2")
     authorsB = setAuthors(analytic, data.get("authors", None))
     # add identifications data
-    Logger.debug("Add identification numbers")
+    logger.debug("Add identification numbers")
     monogr = etree.SubElement(biblStruct, TEI + "monogr")
     setIDS(monogr, data.get("ID", None))
     # add bib information relative to document
-    Logger.debug("Add situation value for document")
+    logger.debug("Add situation value for document")
     imprint = etree.SubElement(monogr, TEI + "imprint")
     setInfoDoc(imprint, data.get("infoDoc", None))
     # add series description for book, proceedings...
-    Logger.debug("Add series description")
+    logger.debug("Add series description")
     series = etree.SubElement(biblStruct, TEI + "series")
     setSeries(series, data.get("series", None))
     # add external ref of document
-    Logger.debug("Add external reference(s)")
+    logger.debug("Add external reference(s)")
     setRef(biblStruct, data.get("extref", None))
     # new section
     profileDesc = etree.SubElement(biblFull, TEI + "profileDesc")
-    Logger.debug("Add language")
+    logger.debug("Add language")
     setLanguage(profileDesc, data.get("lang", None))
     textClass = etree.SubElement(profileDesc, TEI + "textClass")
     # add keywords
-    Logger.debug("Add keywords")
+    logger.debug("Add keywords")
     setKeywords(textClass, data.get("keywords", None))
     # add classification codes
-    Logger.debug("Add classification codes")
+    logger.debug("Add classification codes")
     setCodes(textClass, data.get("codes", None))
     # set type of document
-    Logger.info("Add type of document: {}".format(data.get("type", None)))
+    logger.info("Add type of document: {}".format(data.get("type", None)))
     setType(textClass, data.get("type", None))
     # add abstract(s)
-    Logger.debug("Add abstract(s)")
+    logger.debug("Add abstract(s)")
     setAbstract(profileDesc, data.get("abstract", None))
     # new section
     back = etree.SubElement(text, TEI + "back")
     # add structure(s)
-    Logger.debug("Add structure(s)")
+    logger.debug("Add structure(s)")
     setStructures(back, data.get("structures", None))
 
     return tei

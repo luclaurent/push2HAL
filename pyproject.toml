@@ -76,6 +76,7 @@ include = [
 [project.scripts]
 pdf2hal = "push2HAL.pdf2hal:start"
 json2hal = "push2HAL.json2hal:start"
+push2hal = "push2HAL.push2hal:start"
 
 [tool.hatch.envs.test]
 dependencies = [

@@ -3,3 +3,4 @@ pymupdf
 pycountry
 unidecode
 python-stdnum
+loguru

@@ -1,21 +1,41 @@
+####*****************************************************************************************
+####*****************************************************************************************
+####*****************************************************************************************
+#### Library part of push2HAL
+#### Copyright - 2024 - Luc Laurent (luc.laurent@lecnam.net)
+####
+#### description available on https://github.com/luclaurent/push2HAL
+####*****************************************************************************************
+####*****************************************************************************************
+
+
 from pybliometrics.scopus import (
     AbstractRetrieval,
     AuthorRetrieval,
     AffiliationRetrieval,
 )
-import logging
+from loguru import logger
 from urllib.request import urlretrieve
-import os
+import os,sys
 from habanero import Crossref
 import json
 
+## NOTICE: use of Scopus API requires a key (from license)
 
+## initialize crossref
 cr = Crossref()
 
-FORMAT = "LBCONVERT - %(asctime)s - %(levelname)s - %(message)s"
-logging.basicConfig(format=FORMAT)
-Logger = logging.getLogger("lbconvert")
-Logger.setLevel(logging.DEBUG)
+## create a custom logger
+logger_format = (
+    "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
+    "<level>{level: <8}</level> |"
+    "<red>LBCONVERT</red> |"
+    "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
+    "{extra[ip]} {extra[user]} - <level>{message}</level>"
+)
+
+logger.remove()
+logger.add(sys.stderr, format=logger_format)
 
 
 
@@ -32,6 +52,7 @@ def findPDFurl(article):
 
 
 def buildAuthor(author):
+    """ Generate basic author data from Scopus"""
     returnAuthor = dict()
     # get data of author from scopus
     autScopus = AuthorRetrieval(author.auid)
@@ -39,7 +60,7 @@ def buildAuthor(author):
     returnAuthor["firstname"] = author.given_name
     returnAuthor["lastname"] = author.surname
     returnAuthor["affiliation"] = author.affiliation.split(";")
-    Logger.debug("Author: {}".format(author))
+    logger.debug("Author: {}".format(author))
     if autScopus.orcid:
         returnAuthor["orcid"] = autScopus.orcid
 
@@ -47,6 +68,7 @@ def buildAuthor(author):
 
 
 def buildAuthors(authors):
+    """ Generate basic author data from Scopus for all authors"""
     returnAuthors = list()
     for author in authors:
         returnAuthors.append(buildAuthor(author))
@@ -54,6 +76,7 @@ def buildAuthors(authors):
 
 
 def buildAffiliations(authorsData):
+    """ Generate full list àf unique affiliations fro all authors from Scopus"""
     # get full list of affiliations
     list_affiliations = set()
     for author in authorsData:
@@ -67,6 +90,7 @@ def buildAffiliations(authorsData):
 
 
 def buildAffiliation(affiliation):
+    """ Get one affiliation from Scopus"""
     # get data from scopus
     affScopus = AffiliationRetrieval(affiliation)
     returnAffiliation = dict()
@@ -89,6 +113,7 @@ def buildAffiliation(affiliation):
 
 
 def findURL(data):
+    """ Get full URL"""
     return_value = None
     for it in data:
         if it.get("content-type") == "text/html":
@@ -122,7 +147,7 @@ def buildJSON(article, json_dir, pdf_dir=None):
         pdf_path = os.path.join(pdf_dir, cleanFilename(doi) + ".pdf")
         # download
         if download:
-            Logger.debug("Downloading PDF: {} -> {}".format(pdf_link, pdf_path))
+            logger.debug("Downloading PDF: {} -> {}".format(pdf_link, pdf_path))
             urlretrieve(pdf_link, pdf_path)
 
     # fill content
