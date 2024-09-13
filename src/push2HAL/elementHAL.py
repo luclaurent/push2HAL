@@ -21,7 +21,29 @@ logger_format = (
     "{extra[ip]} {extra[user]} - <level>{message}</level>"
 )
 
+## see on references folder
+## and https://github.com/CCSDForge/HAL/blob/master/schema/Readme.md
+
+
 class HALelt(ABC):
+    
+    def __init__(self, data=None):
+        self.data = None
+        self.dataJSON = None
+        self.dataXML = None
+        self.dataHAL
+        
+        ## load data
+        if data is not None:
+            self.loadData(data)
+    
+    def loadData(self, data):
+    
+    def populate(self, data):
+    
+    def writeJSON(self, filename):
+    
+    def writeXML(self, filename):
     
 
 class Article(HALelt):

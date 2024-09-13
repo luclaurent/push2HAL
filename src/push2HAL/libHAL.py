@@ -214,8 +214,9 @@ def upload2HAL(file, headers, credentials, server="preprod"):
         # extract hal_id
         for j in json_ret:
             if type(j) is dict:
-                if j.get('duplicate-entry'):
+                if j.get('duplicate-entry'):                    
                     hal_id = list(j.get('duplicate-entry').keys())[0]
+                    logger.warning('Duplicate entry: {}'.format(hal_id))
     return hal_id
 
 def manageError(e):
@@ -889,7 +890,7 @@ def getTypeDoc(typeDoc):
         return "SOFTWARE"
     elif typeDoc == "presconf":  # Document associé à des manifestations scientifiques
         return "PRESCONF"
-    elif typeDoc == "software" or typeDoc == "logiciel":  # logiciel
+    elif typeDoc == "etabthese":  # thèse d'établissement
         return "ETABTHESE"
     elif typeDoc == "memclic":  #
         return "MEMLIC"
