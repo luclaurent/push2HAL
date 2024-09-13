@@ -350,6 +350,7 @@ def upload2HAL(file, headers, credentials, server="preprod"):
             if type(j) is dict:
                 if j.get('duplicate-entry'):
                     hal_id = list(j.get('duplicate-entry').keys())[0]
+                    Logger.warning('Duplicate entry: {}'.format(hal_id))
     return hal_id
 
 def manageError(e):
