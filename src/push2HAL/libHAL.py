@@ -179,6 +179,8 @@ def choose_from_results(
 
 def addFileInXML(inTree, filePath, hal_id="upload"):
     """Add new imported file in XML"""
+    if hal_id == None:
+        hal_id = "upload"
     newFilename = dflt.DEFAULT_UPLOAD_FILE_NAME_PDF.format(hal_id)
     Logger.debug("Copy original file to new one: {} -> {}".format(filePath, newFilename))
     shutil.copyfile(filePath, newFilename)
@@ -277,7 +279,7 @@ def preparePayload(
         )
         header["Hide-In-OAI"] = m.adaptH(options.get("hide4oai", header["Hide-In-OAI"]))
         header["Content-Disposition"] = m.adaptH(
-            "attachment; filename={}".format(xmlFileName)   # path inside the archive
+            "attachment; filename={}".format(dflt.DEFAULT_UPLOAD_FILE_NAME_XML)   # path inside the archive
         )
     else:
         header["Content-Type"] = m.adaptH("text/xml")

@@ -14,11 +14,33 @@ logging.basicConfig(format=FORMAT)
 
 
 saveDir = "data"
+saveJsonDir = "json"
+
 pathlib.Path(saveDir).mkdir(parents=True, exist_ok=True)
+pathlib.Path(saveJsonDir).joinpath("pdf").mkdir(parents=True, exist_ok=True)
+
+
+def getAPIconfig(name):
+    ''''''
+    __DEF_API_FILE_SPRINGER_ = ".api_springer"
+    filePath = []
+    if name == "springer":
+        listFiles = [
+            pathlib.Path(__file__).parent.absolute().joinpath(__DEF_API_FILE_SPRINGER_),
+            pathlib.Path(__file__).parent.absolute().parent.joinpath(__DEF_API_FILE_SPRINGER_)
+        ]
+        for f in listFiles:
+            if f.exists():
+                filePath = f
+                break
+    return filePath
+        
+
 
 if False:
     # get full list of papers in journal
-    with open('.api_springer','r') as f: 
+    fileAPIspringer = getAPIconfig("springer")
+    with open(fileAPIspringer ,'r') as f: 
         api_key = f.read()
     journal_id = "40323"
     url_base = "http://api.springernature.com/"
@@ -62,7 +84,7 @@ if False:
                 )
             )
 
-if False:
+if True:
     # load pickle
     article_list = pickle.load(
         open(os.path.join(saveDir, "article_list.pck"), "rb")
@@ -79,13 +101,13 @@ if False:
     pickle.dump(article_list_collection, file)
     file.close()
     file = open(os.path.join(saveDir, "article_list_not_collection.pck"), "wb")
-    pickle.dump(article_list_collection, file)
+    pickle.dump(article_list_not_collection, file)
     file.close()
 
 if False:
     # load pickle
     article_list_collection = pickle.load(
-        open(os.path.join(saveDir, "article_list_collection.pck"), "rb")
+        open(os.path.join(saveDir, "article_list_not_collection.pck"), "rb")
     )
     # check if article is in HAL
     article_list_in_hal = list()
@@ -106,38 +128,38 @@ if False:
     print("Articles in HAL: {}".format(len(article_list_in_hal)))
     print("Articles not in HAL: {}".format(len(article_list_notin_hal)))
 
-if False:
+if True:
     # load pickle
     article_list = pickle.load(
         open(os.path.join(saveDir, "article_list_notin_hal.pck"), "rb")
     )
     # along articles
     for art in article_list:
-        try:
-            # convert to HAL
-            json_file = libConvert.buildJSON(art,'json',os.path.join('json','pdf'))
+        # try:
+        # convert to HAL
+        json_file = libConvert.buildJSON(art,'json',os.path.join('json','pdf'))
 
-            # push to HAL from json
-            idHal = execHAL.runJSON2HAL(
-                json_file,
-                verbose=True,
-                prod="test", # switch to prod with caution
-                credentials=misc.load_credentials(),#
-                completion="idext,affiliation", # or false
-                idhal=None,
-            )
-            # push idhal to json
-            data = json.loads(open(json_file).read())
-            data['doc_idhal'] = idHal
-            json_object = json.dumps(data, indent=4)
-            with open(json_file, "w") as outfile:
-                outfile.write(json_object)
-        except:
-            print("Error with article: {}".format(art["doi"]))
+        # push to HAL from json
+        idHal = execHAL.runJSON2HAL(
+            json_file,
+            verbose=True,
+            prod="prod", # switch to prod with caution
+            credentials=misc.load_credentials(),#
+            completion="idext,affiliation", # or false
+            idhal=None,
+        )
+        # push idhal to json
+        data = json.loads(open(json_file).read())
+        data['doc_idhal'] = idHal
+        json_object = json.dumps(data, indent=4)
+        with open(json_file, "w") as outfile:
+            outfile.write(json_object)
+        # except:
+        #     print("Error with article: {}".format(art["doi"]))
     
     
 # add pdf to HAL      
-if True:
+if False:
     import glob,shutil
     jsondir = 'json'
     pathlib.Path(os.path.join(saveDir,"done")).mkdir(parents=True, exist_ok=True)

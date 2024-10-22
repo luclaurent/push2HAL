@@ -1,3 +1,4 @@
+import pybliometrics
 from pybliometrics.scopus import (
     AbstractRetrieval,
     AuthorRetrieval,
@@ -9,6 +10,8 @@ import os
 from habanero import Crossref
 import json
 
+#initialisation 
+pybliometrics.scopus.init()
 
 cr = Crossref()
 
@@ -90,10 +93,11 @@ def buildAffiliation(affiliation):
 
 def findURL(data):
     return_value = None
-    for it in data:
-        if it.get("content-type") == "text/html":
-            return_value = it.get("URL")
-            break
+    if data:
+        for it in data:
+            if it.get("content-type") == "text/html":
+                return_value = it.get("URL")
+                break
     return return_value
 
 
@@ -177,7 +181,7 @@ def buildJSON(article, json_dir, pdf_dir=None):
         # "link2": "https://link2.com/ID",
         # "link3": "https://link3.com/ID"
     }
-    publisherlink = findURL(dataCrossRef["message"]["link"])
+    publisherlink = findURL(dataCrossRef["message"].get("link",None))
     if publisherlink:
         content["extref"]["publisher"] = publisherlink
     enKeywords = article.get("keyword", None)
@@ -193,7 +197,7 @@ def buildJSON(article, json_dir, pdf_dir=None):
         "halDomain": ["spi"]
     }
     if pdf_path:
-        content["fileTmp"] = os.path.relpath(pdf_path, start=json_dir)
+        content["file"] = os.path.relpath(pdf_path, start=json_dir)
     content["authors"] = buildAuthors(dataScopus.authors)
     content["structures"] = buildAffiliations(content["authors"])
     content["license"] = "by"
