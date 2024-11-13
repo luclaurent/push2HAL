@@ -21,6 +21,15 @@ from lxml import etree
 from pdftitle import get_title_from_file as titleFromPdf
 import pycountry as pc
 
+# specific formatting for loguru
+_DEF_LOGURU_FORMAT_ = (
+    "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
+    "<level>{level: <8}</level> |"
+    "<red>PUSH2HAL</red> |"
+    "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> |"
+    "- <level>{message}</level>"
+)
+
 
 def input_char(message):
     try:
@@ -148,7 +157,10 @@ def writeXML(inTree, file_path, check=True):
     et = inTree.getroottree()
     if check:
         checkXML(et)
-    et.write(file_path, pretty_print=True, xml_declaration=True, encoding='utf-8')
+    et.write(file_path, 
+             pretty_print=True, 
+             xml_declaration=True, 
+             encoding='utf-8')
     # f.write(etree.tostring(inTree, pretty_print=True, xml_declaration=True, encoding='utf-8'))
 
 
@@ -228,3 +240,36 @@ def checkISBN(isbn):
 
     result = sum((i + 1) * int(digit) for i, digit in enumerate(digits))
     return (result % 11) == check_digit
+
+def showDict(dictIn):
+    strOut = ''
+    if type(dictIn) is dict:
+        for k,v in dictIn.items():
+            strOut = f'{k}: {v}\n'
+    elif dictIn is None:
+        strOut = 'None'
+    return strOut    
+
+def showList(listIn):
+    strOut = ''
+    if type(listIn) is list:
+        for i in listIn:
+            strOut = f'{i}\n'
+    elif listIn is None:
+        strOut = 'None'
+    return strOut
+
+def showItem(item):
+    strOut = ''
+    if item:
+        if type(item) is dict:
+            strOut = showDict(item)
+        elif type(item) is list:
+            strOut = showList(item)
+        else:
+            strOut = item
+    elif item is None:
+        strOut = 'None'
+    else:
+        strOut = item
+    return strOut

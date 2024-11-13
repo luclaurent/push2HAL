@@ -17,6 +17,7 @@ classifiers = [
     "Operating System :: Unix",
 ]
 dependencies = [
+  "furl",
   "requests",
   "lxml",
   "pdftitle",

@@ -12,14 +12,6 @@ from abc import ABC, abstractmethod
 from loguru import logger
 
 
-## create a custom logger
-logger_format = (
-    "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
-    "<level>{level: <8}</level> |"
-    "<red>PUSH2HAL</red> |"
-    "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
-    "{extra[ip]} {extra[user]} - <level>{message}</level>"
-)
 
 ## see on references folder
 ## and https://github.com/CCSDForge/HAL/blob/master/schema/Readme.md
