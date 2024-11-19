@@ -17,6 +17,10 @@ classifiers = [
     "Operating System :: Unix",
 ]
 dependencies = [
+  "feedparser",
+  "bibtexparser>=2.0.0b7",
+  "loguru",
+  "python-doi",
   "furl",
   "requests",
   "lxml",

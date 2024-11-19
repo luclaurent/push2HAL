@@ -19,11 +19,9 @@ DEFAULT_UPLOAD_FILE_NAME_PDF = "{}.pdf"  #'upload.pdf'
 DEFAULT_UPLOAD_FILE_NAME_XML = "upload.xml"
 DEFAULT_UPLOAD_FILE_NAME_ZIP = "upload"
 DEFAULT_MAX_NUMBER_RESULTS = (
-    5  # results to display when searching in archives-ouvertes.fr
+    100  # results to display when searching in archives-ouvertes.fr
 )
-DEFAULT_MAX_NUMBER_RESULTS_QUERY = (
-    0  # results to query when searching in archives-ouvertes.fr
-)
+
 
 DEFAULT_XML_SWORD_PACKAGING = furl("http://purl.org/net/sword-types/AOfr")
 DEFAULT_CONTENT_DISPOSITION = "none"
@@ -37,25 +35,25 @@ DEFAULT_HAL_TEST = "1"
 DEFAULT_VALIDATION_XSD = "aofr.xsd"
 DEFAULT_TEI_URL_NAMESPACE = furl("http://www.tei-c.org/ns/1.0")
 DEFAULT_NAMESPACE_XML = {
-    None: DEFAULT_TEI_URL_NAMESPACE.geturl()
+    None: DEFAULT_TEI_URL_NAMESPACE.url
 }  # , 'tei': 'http://www.tei-c.org/ns/1.0' , 'hal':'http://hal.archives-ouvertes.fr'} #{"tei": "http://www.tei-c.org/ns/1.0"}
 DEFAULT_XML_LANG = "{http://www.w3.org/XML/1998/namespace}"
 DEFAULT_ERROR_DESCRIPTION_SWORD_LOC = "sword:verboseDescription"
 HAL_API_BASE = furl("https://api.archives-ouvertes.fr/")
 HAL_API_URL = {
-    "base": HAL_API_BASE,
-    "search": HAL_API_BASE.set(path="search/"),
-    "anr": HAL_API_BASE.set(path="ref/anrproject/"),
-    "author": HAL_API_BASE.set(path="ref/author/"),
-    "authorstructure": HAL_API_BASE.set(path="ref/authorstructure/"),
-    "europeanproject": HAL_API_BASE.set(path="ref/europeanproject/"),
-    "doctype": HAL_API_BASE.set(path="ref/doctype/"),
-    "domain": HAL_API_BASE.set(path="ref/domain/"),
-    "instance": HAL_API_BASE.set(path="ref/instance/"),
-    "journal": HAL_API_BASE.set(path="ref/journal/"),
-    "metadata": HAL_API_BASE.set(path="ref/metadata/"),
-    "metadatalist": HAL_API_BASE.set(path="ref/metadatalist/"),
-    "structure": HAL_API_BASE.set(path="ref/structure/"),
+    "base": HAL_API_BASE.copy(),
+    "search": HAL_API_BASE.set(path="search/").copy(),
+    "anr": HAL_API_BASE.set(path="ref/anrproject/").copy(),
+    "author": HAL_API_BASE.set(path="ref/author/").copy(),
+    "authorstructure": HAL_API_BASE.set(path="ref/authorstructure/").copy(),
+    "europeanproject": HAL_API_BASE.set(path="ref/europeanproject/").copy(),
+    "doctype": HAL_API_BASE.set(path="ref/doctype/").copy(),
+    "domain": HAL_API_BASE.set(path="ref/domain/").copy(),
+    "instance": HAL_API_BASE.set(path="ref/instance/").copy(),
+    "journal": HAL_API_BASE.set(path="ref/journal/").copy(),
+    "metadata": HAL_API_BASE.set(path="ref/metadata/").copy(),
+    "metadatalist": HAL_API_BASE.set(path="ref/metadatalist/").copy(),
+    "structure": HAL_API_BASE.set(path="ref/structure/").copy(),
 }
 
 ############################################################
@@ -982,6 +980,7 @@ HAL_API_ALLOWED_RETURN_FIELDS_DOC = {
     "submit_date": "submittedDate_s",
     "thesis_school_exact": "thesisSchool_s",
     "title_exact": "title_s",
+    "title": "title_s",
     "annexe_type_exact": "typeAnnex_s",
     "type_exact": "type_s",
     "uri": "uri_s",
@@ -990,9 +989,16 @@ HAL_API_ALLOWED_RETURN_FIELDS_DOC = {
     "writing_date": "writingDate_s",
 }
 # https://api.archives-ouvertes.fr/docs/search/?#wt
-HAL_API_ALLOWED_RETURN_TYPES_DOC = ["json", "xml", "csv"]
+HAL_API_ALLOWED_RETURN_FORMATS_DOC = ["json",
+                                    "xml",
+                                    "xml-tei",
+                                    "bibtex",
+                                    "endnote",
+                                    "rss",
+                                    "atom",
+                                    "csv"]
 HAL_API_DEFAULT_QUERY_TYPE_DOC = "text_search_unsensitive"
-HAL_API_DEFAULT_RETURN_TYPE_DOC = "json"
+HAL_API_DEFAULT_RETURN_FORMAT_DOC = "json"
 ## ANR
 # https://api.archives-ouvertes.fr/docs/ref/resource/anrproject
 # https://api.archives-ouvertes.fr/docs/ref/?resource=anrproject&schema=fields#fields
@@ -1009,7 +1015,7 @@ HAL_API_ALLOWED_QUERY_TYPES_ANR = {
     "calltitle_exact": "callTitle_s",
     "calltitle_ex_unsensitive": "callTitle_sci",
     "calltitle_unsensitive": "callTitle_t",
-    "calltitle_": "callTitle_t",
+    "calltitle": "callTitle_t",
     "date_last_indexed": "dateLastIndexed_tdate",
     "id": "docid",
     "label_html": "label_html",
@@ -1032,20 +1038,22 @@ HAL_API_ALLOWED_QUERY_TYPES_ANR = {
 HAL_API_ALLOWED_RETURN_FIELDS_ANR = {
     "acronym_type_exact": "acronymProgram_s",
     "acronym_exact": "acronym_s",
-    "title_full_format": "callTitle_fs",
-    "title_exact": "callTitle_s",
+    "calltitle_full_format": "callTitle_fs",
+    "calltitle_exact": "callTitle_s",
+    "calltitle": "callTitle_s",
     "id": "docid",
     "label_html": "label_html",
     "title_abb_format": "label_s",
     "ref_project_exact": "reference_s",
     "title_exact": "title_s",
+    "title": "title_s",
     "validity": "valid_s",
     "validity_date": "yearDate_s",
 }
 # https://api.archives-ouvertes.fr/docs/ref/?resource=anrproject#wt
-HAL_API_ALLOWED_RETURN_TYPES_ANR = ["json", "xml", "csv"]
+HAL_API_ALLOWED_RETURN_FORMATS_ANR = ["json", "xml", "csv"]
 HAL_API_DEFAULT_QUERY_TYPE_ANR = "text_search_unsensitive"
-HAL_API_DEFAULT_RETURN_TYPE_ANR = "json"
+HAL_API_DEFAULT_RETURN_FORMAT_ANR = "json"
 ## EUROPEANPROJECT
 # https://api.archives-ouvertes.fr/docs/ref/resource/europeanproject
 # https://api.archives-ouvertes.fr/docs/ref/?resource=europeanproject&schema=fields#fields
@@ -1097,12 +1105,13 @@ HAL_API_ALLOWED_RETURN_FIELDS_EUROPEANPROJECT = {
     "ref_project_exact": "reference_s",
     "start_date": "startDate_s",
     "title_exact": "title_s",
+    "title": "title_s",
     "validity": "valid_s",
 }
 # https://api.archives-ouvertes.fr/docs/ref/?resource=europeanproject#wt
-HAL_API_ALLOWED_RETURN_TYPES_EUROPEANPROJECT = ["json", "xml", "csv"]
+HAL_API_ALLOWED_RETURN_FORMATS_EUROPEANPROJECT = ["json", "xml", "csv"]
 HAL_API_DEFAULT_QUERY_TYPE_EUROPEANPROJECT = "text_search_unsensitive"
-HAL_API_DEFAULT_RETURN_TYPE_EUROPEANPROJECT = "json"
+HAL_API_DEFAULT_RETURN_FORMAT_EUROPEANPROJECT = "json"
 ## DOMAIN
 # https://api.archives-ouvertes.fr/docs/ref/resource/domain
 # https://api.archives-ouvertes.fr/docs/ref/?resource=domain&schema=fields#fields
@@ -1122,11 +1131,12 @@ HAL_API_ALLOWED_RETURN_FIELDS_DOMAIN = {
     "id": "docid",
     "has_child": "haveNext_bool",
     "title_display": "label_s",
+    "title": "label_s",
 }
 # https://api.archives-ouvertes.fr/docs/ref/?resource=domain#wt
-HAL_API_ALLOWED_RETURN_TYPES_DOMAIN = ["json", "xml", "csv"]
+HAL_API_ALLOWED_RETURN_FORMATS_DOMAIN = ["json", "xml", "csv"]
 HAL_API_DEFAULT_QUERY_TYPE_DOMAIN = "text_search_unsensitive"
-HAL_API_DEFAULT_RETURN_TYPE_DOMAIN = "json"
+HAL_API_DEFAULT_RETURN_FORMAT_DOMAIN = "json"
 ## AUTHOR
 # https://api.archives-ouvertes.fr/docs/ref/resource/author
 # https://api.archives-ouvertes.fr/docs/ref/?resource=author&schema=fields#fields
@@ -1179,9 +1189,9 @@ HAL_API_ALLOWED_RETURN_FIELDS_AUTHOR = {
     "ids_ext_exact": "Id_s",
 }
 # https://api.archives-ouvertes.fr/docs/ref/?resource=author#wt
-HAL_API_ALLOWED_RETURN_TYPES_AUTHOR = ["json", "xml", "csv"]
+HAL_API_ALLOWED_RETURN_FORMATS_AUTHOR = ["json", "xml", "csv"]
 HAL_API_DEFAULT_QUERY_TYPE_AUTHOR = "text_search_unsensitive"
-HAL_API_DEFAULT_RETURN_TYPE_AUTHOR = "json"
+HAL_API_DEFAULT_RETURN_FORMAT_AUTHOR = "json"
 ## JOURNAL
 # https://api.archives-ouvertes.fr/docs/ref/resource/journal
 # https://api.archives-ouvertes.fr/docs/ref/?resource=journal&schema=fields#fields
@@ -1251,15 +1261,16 @@ HAL_API_ALLOWED_RETURN_FIELDS_JOURNAL = {
     "start_date_publishing_format": "startDate_tdate",
     "title_abbr_exact": "titleAbbr_s",
     "title_exact": "title_s",
+    "title": "title_s",
     "update_date": "updateDate_s",
     "update_date_format": "updateDate_tdate",
     "url": "url_s",
     "validity": "valid_s",
 }
 # https://api.archives-ouvertes.fr/docs/ref/?resource=journal#wt
-HAL_API_ALLOWED_RETURN_TYPES_JOURNAL = ["json", "xml", "csv"]
+HAL_API_ALLOWED_RETURN_FORMATS_JOURNAL = ["json", "xml", "csv"]
 HAL_API_DEFAULT_QUERY_TYPE_JOURNAL = "title_search_auto_complete"
-HAL_API_DEFAULT_RETURN_TYPE_JOURNAL = "json"
+HAL_API_DEFAULT_RETURN_FORMAT_JOURNAL = "json"
 # AUTHORSTRUCTURE
 # https://api.archives-ouvertes.fr/docs/ref/resource/authorstructure
 HAL_API_ALLOWED_QUERY_TYPES_AUTHORSTRUCTURE = {
@@ -1271,9 +1282,9 @@ HAL_API_ALLOWED_QUERY_TYPES_AUTHORSTRUCTURE = {
     "get_parents": "getParents",
 }
 HAL_API_ALLOWED_RETURN_FIELDS_AUTHORSTRUCTURE = {}
-HAL_API_ALLOWED_RETURN_TYPES_AUTHORSTRUCTURE = ["json", "xml"]
+HAL_API_ALLOWED_RETURN_FORMATS_AUTHORSTRUCTURE = ["json", "xml"]
 HAL_API_DEFAULT_QUERY_TYPE_AUTHORSTRUCTURE = "last_name"
-HAL_API_DEFAULT_RETURN_TYPE_AUTHORSTRUCTURE = "json"
+HAL_API_DEFAULT_RETURN_FORMAT_AUTHORSTRUCTURE = "json"
 ## STRUCTURE
 # https://api.archives-ouvertes.fr/docs/ref/resource/structure
 # https://api.archives-ouvertes.fr/docs/ref/?resource=structure&schema=fields#fields
@@ -1351,9 +1362,9 @@ HAL_API_ALLOWED_RETURN_FIELDS_STRUCTURE = {
     "validity": "valid_s",
 }
 # https://api.archives-ouvertes.fr/docs/ref/?resource=structure#wt
-HAL_API_ALLOWED_RETURN_TYPES_STRUCTURE = ["json", "xml", "xml-tei", "csv"]
-HAL_API_DEFAULT_QUERY_TYPE_STRUCTURE = "title_search_unsensitive"
-HAL_API_DEFAULT_RETURN_TYPE_STRUCTURE = "json"
+HAL_API_ALLOWED_RETURN_FORMATS_STRUCTURE = ["json", "xml", "xml-tei", "csv"]
+HAL_API_DEFAULT_QUERY_TYPE_STRUCTURE = "text_search_unsensitive"
+HAL_API_DEFAULT_RETURN_FORMAT_STRUCTURE = "json"
 ## DOCTYPE
 # https://api.archives-ouvertes.fr/docs/ref/resource/doctype
 HAL_API_ALLOWED_QUERY_TYPES_DOCTYPE = {
@@ -1361,16 +1372,16 @@ HAL_API_ALLOWED_QUERY_TYPES_DOCTYPE = {
     "lang": "lang",
 }
 HAL_API_ALLOWED_RETURN_FIELDS_DOCTYPE = {}
-HAL_API_ALLOWED_RETURN_TYPES_DOCTYPE = ["json", "xml"]
+HAL_API_ALLOWED_RETURN_FORMATS_DOCTYPE = ["json", "xml"]
 HAL_API_DEFAULT_QUERY_TYPE_DOCTYPE = "instance_name_exact"
-HAL_API_DEFAULT_RETURN_TYPE_DOCTYPE = "json"
+HAL_API_DEFAULT_RETURN_FORMAT_DOCTYPE = "json"
 ## INSTANCE
 # https://api.archives-ouvertes.fr/docs/ref/resource/instance
 HAL_API_ALLOWED_QUERY_TYPES_INSTANCE = {}
 HAL_API_ALLOWED_RETURN_FIELDS_INSTANCE = {}
-HAL_API_ALLOWED_RETURN_TYPES_INSTANCE = ["json", "xml"]
+HAL_API_ALLOWED_RETURN_FORMATS_INSTANCE = ["json", "xml"]
 HAL_API_DEFAULT_QUERY_TYPE_INSTANCE = ""
-HAL_API_DEFAULT_RETURN_TYPE_INSTANCE = "json"
+HAL_API_DEFAULT_RETURN_FORMAT_INSTANCE = "json"
 ## METADATA
 # https://api.archives-ouvertes.fr/docs/ref/resource/metadata
 HAL_API_ALLOWED_QUERY_TYPES_METADATA = {
@@ -1379,9 +1390,9 @@ HAL_API_ALLOWED_QUERY_TYPES_METADATA = {
     "lang": "lang",
 }
 HAL_API_ALLOWED_RETURN_FIELDS_METADATA = {}
-HAL_API_ALLOWED_RETURN_TYPES_METADATA = ["json", "xml"]
+HAL_API_ALLOWED_RETURN_FORMATS_METADATA = ["xml"] # ["json", "xml"] (json not working)
 HAL_API_DEFAULT_QUERY_TYPE_METADATA = "instance_name_exact"
-HAL_API_DEFAULT_RETURN_TYPE_METADATA = "json"
+HAL_API_DEFAULT_RETURN_FORMAT_METADATA = "xml"
 ## METADATALIST
 # https://api.archives-ouvertes.fr/docs/ref/?resource=metadatalist&schema=fields#fields
 HAL_API_ALLOWED_QUERY_TYPES_METADATALIST = {
@@ -1410,9 +1421,9 @@ HAL_API_ALLOWED_RETURN_FIELDS_METADATALIST = {
     "meta_value_exact": "metaValue_s",
 }
 # https://api.archives-ouvertes.fr/docs/ref/?resource=metadatalist#wt
-HAL_API_ALLOWED_RETURN_TYPES_METADATALIST = ["json", "xml", "csv"]
+HAL_API_ALLOWED_RETURN_FORMATS_METADATALIST = ["json", "xml", "csv"]
 HAL_API_DEFAULT_QUERY_TYPE_METADATALIST = "text_search_unsensitive"
-HAL_API_DEFAULT_RETURN_TYPE_METADATALIST = "json"
+HAL_API_DEFAULT_RETURN_FORMAT_METADATALIST = "json"
 ############################################################
 ############################################################
 ############################################################
@@ -1445,20 +1456,22 @@ HAL_API_ALLOWED_RETURN_FIELDS = (
     | HAL_API_ALLOWED_RETURN_FIELDS_AUTHORSTRUCTURE
     | HAL_API_ALLOWED_RETURN_FIELDS_DOC
 )
-HAL_API_ALLOWED_RETURN_TYPES = (
-    HAL_API_ALLOWED_RETURN_TYPES_DOMAIN
-    + HAL_API_ALLOWED_RETURN_TYPES_JOURNAL
-    + HAL_API_ALLOWED_RETURN_TYPES_EUROPEANPROJECT
-    + HAL_API_ALLOWED_RETURN_TYPES_STRUCTURE
-    + HAL_API_ALLOWED_RETURN_TYPES_AUTHOR
-    + HAL_API_ALLOWED_RETURN_TYPES_ANR
-    + HAL_API_ALLOWED_RETURN_TYPES_DOCTYPE
-    + HAL_API_ALLOWED_RETURN_TYPES_INSTANCE
-    + HAL_API_ALLOWED_RETURN_TYPES_METADATA
-    + HAL_API_ALLOWED_RETURN_TYPES_METADATALIST
-    + HAL_API_ALLOWED_RETURN_TYPES_AUTHORSTRUCTURE
-    + HAL_API_ALLOWED_RETURN_TYPES_DOC
-)
+HAL_API_ALLOWED_RETURN_FORMATS = list(set(
+    HAL_API_ALLOWED_RETURN_FORMATS_DOMAIN
+    + HAL_API_ALLOWED_RETURN_FORMATS_JOURNAL
+    + HAL_API_ALLOWED_RETURN_FORMATS_EUROPEANPROJECT
+    + HAL_API_ALLOWED_RETURN_FORMATS_STRUCTURE
+    + HAL_API_ALLOWED_RETURN_FORMATS_AUTHOR
+    + HAL_API_ALLOWED_RETURN_FORMATS_ANR
+    + HAL_API_ALLOWED_RETURN_FORMATS_DOCTYPE
+    + HAL_API_ALLOWED_RETURN_FORMATS_INSTANCE
+    + HAL_API_ALLOWED_RETURN_FORMATS_METADATA
+    + HAL_API_ALLOWED_RETURN_FORMATS_METADATALIST
+    + HAL_API_ALLOWED_RETURN_FORMATS_AUTHORSTRUCTURE
+    + HAL_API_ALLOWED_RETURN_FORMATS_DOC
+))
+HAL_API_DEFAULT_QUERY_TYPE = HAL_API_DEFAULT_QUERY_TYPE_DOC
+HAL_API_DEFAULT_RETURN_FORMAT = HAL_API_DEFAULT_RETURN_FORMAT_DOC
 ############################################################
 ############################################################
 ############################################################
