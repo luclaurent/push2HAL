@@ -164,4 +164,4 @@ cython_debug/
 .apihal
 src/push2HAL/version.py
 examples/use-cases/.apihal
-examples/use-cases/.api_springer
+examples/use-cases/.api_springersite/
