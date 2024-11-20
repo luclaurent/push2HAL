@@ -313,7 +313,7 @@ def setAuthors(inTree, authors):
             idA.set("target", a["url"])
         if a.get("orcid", None):
             idA = etree.SubElement(nAuthors[-1], TEI + "idno")
-            idA.set("type", dflt.ID_ORCID_URL)
+            idA.set("type", dflt.ID_ORCID_URL.url)
             idA.text = a["orcid"]
         if a.get("arxiv", None):
             idA = etree.SubElement(nAuthors[-1], TEI + "idno")
@@ -358,7 +358,8 @@ def setLicence(inTree, licence):
     else:
         licenceV = licence
     logger.warning("licence: {} (works only for Creative Commons one)".format(licenceV))
-    lic_cc.set("target", dflt.ID_CC_URL + "/" + licenceV + "/")
+    buildURL = dflt.ID_CC_URL / licenceV / "/"
+    lic_cc.set("target", buildURL.url)
 
 
 def setStamps(inTree, stamps):
