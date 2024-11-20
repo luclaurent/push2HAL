@@ -145,4 +145,16 @@ def test_exportStructure(typeExport):
     res = api.basicSearch(txtsearch="LMSSC",
                     returnFields=[],
                     returnFormat=typeExport)
-    assert res[0].get("docid") == "12568"
+    # depending of export format
+    valueOk = 12568
+    if api.returnFormat == "json":
+        assert res[0].get("docid") == str(valueOk)
+    elif api.returnFormat == "csv":
+        assert int(res.loc[0].at['docid']) == valueOk
+    elif api.returnFormat == "xml":
+        assert res.xpath('//str[@name="docid"]')[0].text == str(valueOk)
+    elif api.returnFormat == "xml-tei":
+        structId = res.xpath('//org')[0].attrib.get('{}id'.format(dflt.DEFAULT_XML_LANG))
+        assert structId == '{}-{}'.format('struct',valueOk)
+    else:
+        assert False
