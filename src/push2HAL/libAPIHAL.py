@@ -252,7 +252,7 @@ class APIHALbase(ABC):
         baseQueryList = []
         if type(self.query) is dict:
             for key, value in self.query.items():
-                baseQueryList.append("{}:{}".format(key, value))
+                baseQueryList.append("{}:{}".format(key, m.formatsolr(value)))
         return ",".join(baseQueryList)
         
     def getParams(self):
@@ -369,7 +369,10 @@ class APIHALbase(ABC):
             logger.warning("No search text provided")
             txtsearch = ""  
         # run search with predefined query
-        basicQuery = {self.defaultQueryType: txtsearch}
+        if len(txtsearch) > 0:
+            basicQuery = {self.defaultQueryType: txtsearch}
+        else:
+            basicQuery = {}
         data = self.search(query=basicQuery, 
                            returnFields=returnFields, 
                            returnFormat=returnFormat, 
@@ -395,9 +398,11 @@ class APIHAL(APIHALbase):
         
     def getBaseUrl(self):        
         """ Update base url with collection if provided"""
-        baseurl = self.url
+        baseurl = self.url.copy()
         if self.collection:
-            baseurl.args['collection'] = self.collection.set(path=self.collection)
+            baseurl.path = baseurl.path / self.collection
+        if str(baseurl.path)[-1] != "/":
+            baseurl.path = baseurl.path / "/"
         return baseurl.url
     
 class APIHALauthor(APIHALbase):

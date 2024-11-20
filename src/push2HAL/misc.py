@@ -273,3 +273,9 @@ def showItem(item):
     else:
         strOut = item
     return strOut
+
+def formatsolr(strIn):
+    """ Format string based on Solr requirements 
+        escape special characters: + - && || ! ( ) { } [ ] ^ " ~ * ? : \ """
+    strOut = re.sub(r'([+\-&|!(){}[\]^"~*?:\\])', r'\\\1', strIn)
+    return strOut

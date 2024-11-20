@@ -34,6 +34,33 @@ def test_exportTypeFromApproxTitle(typeExport):
                           returnFormat=typeExport)
     assert res is not None
 
+@pytest.mark.parametrize("typeExport", ["json"])
+def test_exportFromCollection(typeExport):
+    api = lib.APIHAL()
+    res = api.basicSearch(txtsearch='model',
+                          returnFields=['doc_idhal'],
+                          returnFormat=typeExport,
+                          collection="CSMA2024")
+    assert res is not None
+
+@pytest.mark.parametrize("typeExport", ["json"])
+def test_exportEverythingFromCollection(typeExport):
+    api = lib.APIHAL()
+    res = api.basicSearch(#txtsearch='',
+                          #returnFields=['doc_idhal'],
+                          #returnFormat=typeExport,
+                          collection="CSMA2024")
+    assert res is not None
+
+@pytest.mark.parametrize("typeExport", ["json"])
+def test_exportExactFromCollection(typeExport):
+    api = lib.APIHAL()
+    res = api.search(query={'title':'MANTA: an industrial-strength open-source high performance explicit and implicit multi-physics solver'},
+                          returnFields=['doc_idhal'],
+                          returnFormat=typeExport,
+                          collection="CSMA2024")
+    assert res[0].get('halId_s') == "hal-04610968"
+
 @pytest.mark.parametrize("typeExport", [None,*dflt.HAL_API_ALLOWED_RETURN_FORMATS_AUTHOR])
 def test_exportAuthor(typeExport):
     api = lib.APIHALauthor()
