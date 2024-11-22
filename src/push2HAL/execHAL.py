@@ -14,6 +14,7 @@ import logging
 import json
 
 from . import libHAL as lib
+from . import libAPIHAL as libAPI
 from . import misc as m
 from . import default as dflt
 
@@ -180,12 +181,14 @@ def runPDF2HAL(
         # Search for the PDF title in HAL.science
         selected_result = dict()
         while "title_s" not in selected_result:
-            archives_results = lib.getDataFromHAL(
-                txtsearch=title, typeI="title", typeDB="article"
-            )
+            api = libAPI.APIHAL()
+            archives_results = api.search(
+                query= {"title": title},
+                returnFields=['title_s','author_full_name_exact','halId_s'],
+                returnFormat="json")
 
             if archives_results:
-                selected_result = lib.choose_from_results(
+                selected_result = libAPI.choose_from_results(
                     archives_results, not interaction
                 )
                 if "title_s" not in selected_result:
@@ -225,9 +228,12 @@ def runPDF2HAL(
 
     if hal_id:
         # Download TEI file
-        tei_content = lib.getDataFromHAL(
-            txtsearch=hal_id, typeI="docId", typeDB="article", typeR="xml-tei"
-        )
+        api = libAPI.APIHAL()
+        tei_content = api.search(query={"halId_s": hal_id},
+                                 returnFormat="xml-tei")
+        # tei_content = lib.getDataFromHAL(
+        #     txtsearch=hal_id, typeI="docId", typeDB="article", typeR="xml-tei"
+        # )
 
         if len(tei_content) > 0:
             # write TEI file

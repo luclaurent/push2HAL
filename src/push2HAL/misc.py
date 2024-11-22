@@ -19,6 +19,7 @@ import fitz
 from . import default as dflt
 from lxml import etree
 from pdftitle import get_title_from_file as titleFromPdf
+from pdftitle import GetTitleParameters
 import pycountry as pc
 
 # specific formatting for loguru
@@ -176,7 +177,8 @@ def cleanXML(inTree, xmlPath=None):
 def extract_info(pdf_path):
     Logger.debug("Extract title from PDF file: {}".format(pdf_path))
     try:
-        title = titleFromPdf(pdf_path)
+        params = GetTitleParameters()
+        title = titleFromPdf(pdf_path,params)
     except Exception as e:
         Logger.error("Error: {}".format(e))
         Logger.error("Unable to get pdf title")

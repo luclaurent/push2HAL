@@ -24,6 +24,7 @@ from stdnum import isbn, issn
 
 from . import default as dflt
 from . import misc as m
+from . import libAPIHAL as libapi
 
 ## create a custom logger
 logger_format = (
@@ -572,19 +573,18 @@ def setIDS(inTree, data):
     if data.get("journal", None):
         lID.append(setID(inTree, data.get("j"), "j"))
         if data.get("halJournalId", None) is None:
-            idJ = getDataFromHAL(
-                txtsearch=data.get("journal"),
-                typeDB="journal",
-                typeI="title",
-                returnFields="docid,title_s",
+            api = libapi.APIHALjournal()
+            idJ = api.search(
+                query={"title": data.get("journal")},
+                returnFields=["docid","title_s"],
+                returnFormat="json",
             )
             if idJ is None:
-                idJ = getDataFromHAL(
-                    textsearch=data.get("journal"),
-                    typeDB="journal",
-                    typeI="title_approx",
-                    returnFields="docid,title_s",
-                )
+                idJ = api.search(
+                query={"title_approx": data.get("journal")},
+                returnFields=["docid","title_s"],
+                returnFormat="json",
+            )
             # adapt id if many are found
             idJournal = None
             if len(idJ) > 1:

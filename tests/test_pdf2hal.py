@@ -2,7 +2,7 @@ import os
 from push2HAL import execHAL
 
 
-def test_runJSON2HAL():
+def test_runPDF2HAL():
     res = execHAL.runPDF2HAL(
         pdf_path="examples/file.pdf",
         verbose=False,
