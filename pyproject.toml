@@ -17,6 +17,7 @@ classifiers = [
     "Operating System :: Unix",
 ]
 dependencies = [
+  "pandas",
   "feedparser",
   "bibtexparser>=2.0.0b7",
   "loguru",
