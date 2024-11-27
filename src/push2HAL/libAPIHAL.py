@@ -16,10 +16,12 @@ from furl import furl
 import doi as doilib
 import requests
 from lxml import etree
+import json
 import bibtexparser as btexp
 from io import StringIO
 import pandas as pd
 import feedparser
+from pathlib import Path
 
 from . import default as dflt
 from . import misc as m
@@ -132,7 +134,6 @@ class APIHALbase(ABC):
                 if item not in self.ALLOWED_RETURN_FIELDS \
                     and item not in list(self.ALLOWED_RETURN_FIELDS.values()):
                     logger.warning("Unknown return field: {} for {}".format(item,self))
-                    returnFields.remove(item)
                 elif item in self.ALLOWED_RETURN_FIELDS:
                     returnFieldsFormat.append(self.ALLOWED_RETURN_FIELDS[item])
                 elif item in list(self.ALLOWED_RETURN_FIELDS.values()):
@@ -721,6 +722,113 @@ def choose_from_results(
 
     return None
 
+class directAccess():
+    """ Direct Access to data of a notice in HAL with HAL ID of document"""
+    def __init__(self,
+                 hal_id=None,
+                 type='xml-tei',
+                 file=None):
+        self.hal_id = self.setId(hal_id)
+        self.type = self.setType(type)
+        self.file =  None
+        if file is not None:
+            self.file = file
+        # get data
+        self.data = self.getData()
+        if self.file:
+            self.saveData()
+            
+    def setId(self, hal_id):
+        if hal_id:
+            if hal_id[0].isdigit():
+                return "hal-{}".format(hal_id)
+            else:
+                return hal_id
+        else:
+            logger.warning("No HAL ID provided")
+            return None
+
+    def setType(self, type):
+        if type in dflt.HAL_DIRECT_ACCESS_FORMATS:
+            return dflt.HAL_DIRECT_ACCESS_FORMATS[type]
+        elif type in dflt.HAL_DIRECT_ACCESS_FORMATS.values():
+            return type
+        else:
+            logger.warning("Unknown type {} for HAL API: force {}".format(type,'tei'))
+            return 'tei'
+
+    def getData(self):
+        """ Get data from HAL """
+        # build url
+        url = furl(dflt.HAL_DIRECT_ACCESS_URL)
+        url = url / self.hal_id
+        url = url / self.type
+        # get data
+        headers = dflt.FAKE_HEADER
+        response = requests.get(url.url, headers=headers)
+        r = AnalyseResponse(response)
+        if not r.status():
+            logger.error("Error on url request: {}".format(r.message))
+            raise Exception('Error on url request: {}'.format(r.message))
+        else:
+            return self.formatData(response)
+        
+        
+    def formatData(self, response):
+        """ Get formatted data from response """
+        if self.type == "tei" \
+            or self.type == "dc" \
+            or self.type == "dcterms" \
+            or self.type == "datacite":
+            dataTmp = response.text
+                # declare namespace
+                # key, value = list(dflt.DEFAULT_NAMESPACE_XML.items())[0]
+                # etree.register_namespace(key, value)
+            data = etree.fromstring(dataTmp.encode("utf-8"))
+        elif self.type == "json":
+            data = response.json().get("response", {}).get("docs", [])[0]
+            if not data:
+                data = response.json().get("response", {}).get("result", [])
+        elif self.type == "bibtex":
+            data = btexp.parse_string(response.text)
+        elif self.type == "endnote":
+            data = response.text
+        elif self.type == "document":
+            data = response
+        return data
+    
+    
+    def writeFile(self):
+        """ Write data to file """
+        if self.type == "tei" \
+            or self.type == "dc" \
+            or self.type == "dcterms" \
+            or self.type == "datacite":
+            et = etree.ElementTree(self.data)
+            et.write(self.file.as_posix(), pretty_print=True)
+        elif self.type == "json":
+            with open( self.file.as_posix(), "w") as outfile:
+                json.dump(self.data, outfile, indent=4)
+        elif self.type == "bibtex":
+            btexp.write_file(self.file.as_posix(),self.data)
+        elif self.type == "endnote":
+            with open(self.file, "w") as f:
+                f.write(self.data)
+        elif self.type == "document":
+            if self.data.headers.get("Content-Type") == "application/pdf":
+                with open(self.file, "w") as f:
+                    f.write(self.data.text)
+                
+    def saveData(self):
+        if self.data:
+            if self.file.exists():
+                logger.warning("File {} already exists, overwriting".format(self.file))
+            self.writeFile()
+            logger.info("Data saved in {}".format(self.file))
+        else:
+            logger.warning("No data to save")
+        
+
 
 class AnalyseResponse():
     """ Manage response from HAL API """
@@ -729,6 +837,10 @@ class AnalyseResponse():
         self.ok = False
         self.message = ""
         self.checkResponse()
+        
+    def status(self):
+        self.checkResponse()
+        return self.ok
 
     def checkResponse(self):
         e = self.response.status_code
@@ -748,9 +860,11 @@ class AnalyseResponse():
             # logger.info("Note accepted by HAL.")
             pass
         elif self.response.status_code == 401:
+            self.ok = False
             # logger.info("Authentification refused - check credentials")
             e = os.EX_SOFTWARE
         elif self.response.status_code == 400:
+            self.ok = False
             # logger.info("Internal error - check XML file")
             e = os.EX_SOFTWARE
         else:

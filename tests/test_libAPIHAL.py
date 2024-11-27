@@ -1,6 +1,13 @@
 import pytest
+import tempfile
+import os
+import contextlib as ctl
+from pathlib import Path
 from push2HAL import libAPIHAL as lib
 from push2HAL import default as dflt
+
+listDirectAccessFormat = list(dflt.HAL_DIRECT_ACCESS_FORMATS.values())
+
 
 def test_doiInHAL():
     res = lib.checkDoiInHAL('10.1007/s11831-017-9226-3')
@@ -158,3 +165,36 @@ def test_exportStructure(typeExport):
         assert structId == '{}-{}'.format('struct',valueOk)
     else:
         assert False
+
+@pytest.mark.parametrize("typeExport", 
+                         [None,*dflt.HAL_DIRECT_ACCESS_FORMATS_LIST])
+@pytest.mark.parametrize("fileExport",[None, "test_export"])
+@pytest.mark.parametrize("halid",["emse-01525674", "hal-03690766"])
+def test_directAccess(typeExport,fileExport,halid):
+    
+    ## depending on raising exception or not
+    expectation = ctl.nullcontext()
+    if halid=="hal-03690766" and typeExport=="document":
+        expectation = pytest.raises(Exception)
+    
+    if fileExport:
+        dirtmp = tempfile.mkdtemp()
+        fileExport = Path(dirtmp) / fileExport
+    with expectation as excinfo:
+        da = lib.directAccess(hal_id=halid,
+                            type=typeExport,
+                            file=fileExport)
+    final_satus = False
+    if excinfo:
+        if excinfo.value.args[0].startswith('Error on url request'):
+            if halid=="hal-03690766" and typeExport=="document":
+                final_satus = True
+    else:
+        if da.data is not None:
+            if da.file is not None:
+                if da.file.exists():
+                    if os.path.getsize(da.file) > 0:
+                        final_satus = True
+            else:
+                final_satus = True
+    assert final_satus

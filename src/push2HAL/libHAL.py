@@ -32,7 +32,8 @@ logger_format = (
     "<level>{level: <8}</level> |"
     "<red>PUSH2HAL</red> |"
     "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
-    "{extra[ip]} {extra[user]} - <level>{message}</level>"
+    #"{extra[ip]} {extra[user]} - <level>{message}</level>"
+    "<level>{message}</level>"
 )
 
 logger.remove()
@@ -68,7 +69,7 @@ def addFileInXML(inTree, filePath, hal_id="upload"):
     nFile = etree.SubElement(inSu, TEI + "ref", nsmap=inTree.nsmap)
     nFile.set("type", "file")
     nFile.set("subtype", "author")
-    nFile.set("n", "1")
+    nFile.set("n", "2")
     nFile.set("target", newFilename)
     return newFilename
 
@@ -127,7 +128,7 @@ def preparePayload(
     header["X-Allow-Completion"] = m.adaptH(
         options.get("completion", dflt.DEFAULT_ALLOW_COMPLETION)
     )
-    header["Packaging"] = m.adaptH(dflt.DEFAULT_XML_SWORD_PACKAGING)
+    header["Packaging"] = m.adaptH(dflt.DEFAULT_XML_SWORD_PACKAGING.url)
     header["X-test"] = m.adaptH(options.get("testMode", dflt.DEFAULT_HAL_TEST))
     if header["X-test"] == "1":
         logger.warning("Test mode activated")
@@ -152,7 +153,7 @@ def preparePayload(
     return sendfile, header
 
 
-def upload2HAL(file, headers, credentials, server="preprod"):
+def upload2HAL(file, headers=None, hal_id=None,credentials=None, server="preprod"):
     """Upload to HAL"""
     logger.info("Upload to HAL")
     logger.debug("File: {}".format(file))
@@ -167,13 +168,26 @@ def upload2HAL(file, headers, credentials, server="preprod"):
     # read data to sent
     with open(file, "rb") as f:
         data = f.read()
-
-    res = requests.post(
-        url=url,
-        data=data,
-        headers=headers,
-        auth=HTTPBasicAuth(credentials["login"], credentials["passwd"]),
-    )
+    if not hal_id:
+        res = requests.post(
+            url=url,
+            data=data,
+            headers=headers,
+            auth=HTTPBasicAuth(credentials["login"], credentials["passwd"]),
+        )
+    else:
+        # reove last segement on url 
+        url.remove(path='hal/')
+        # append id_hal of the dcument
+        id = hal_id.split('v')[0]
+        url = url / id
+        print(url)
+        res = requests.put(
+            url=url,
+            data=data,
+            headers=headers,
+            auth=HTTPBasicAuth(credentials["login"], credentials["passwd"]),
+        )
     
      
     hal_id = res.status_code

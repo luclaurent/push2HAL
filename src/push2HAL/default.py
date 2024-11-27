@@ -1476,6 +1476,20 @@ HAL_API_DEFAULT_RETURN_FORMAT = HAL_API_DEFAULT_RETURN_FORMAT_DOC
 ############################################################
 ############################################################
 
+HAL_DIRECT_ACCESS_URL = furl("https://hal.science/")
+HAL_DIRECT_ACCESS_FORMATS = {
+    "xml-tei": "tei",
+    "bibtex": "bibtex",
+    "dublin-core": "dc",
+    "dublin-core-terms": "dcterms",
+    "endnote": "endnote",
+    "datacite": "datacite",
+    "document": "document",
+    "pdf": "document",
+    "json": "json"
+}
+HAL_DIRECT_ACCESS_FORMATS_LIST = set(HAL_DIRECT_ACCESS_FORMATS.values())
+
 HAL_TEI_URL = "https://api.archives-ouvertes.fr/oai/TEI/{hal_id}"
 HAL_SWORD_API_URL = furl("https://api.archives-ouvertes.fr/sword/hal/")
 HAL_SWORD_PRE_API_URL = furl("https://api-preprod.archives-ouvertes.fr/sword/hal/")
@@ -1485,6 +1499,8 @@ ID_ARXIV_URL = furl("http://arxiv.org/a/")
 ID_RESEARCHERID_URL = furl("http://www.researcherid.com/rid/")
 ID_IDREF_URL = furl("http://www.idref.fr/")
 ID_CC_URL = furl("https://creativecommons.org/licenses/")
+
+FAKE_HEADER = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36'}
 
 DEFAULT_AUDIENCE = "1"
 DEFAULT_INVITED = "0"

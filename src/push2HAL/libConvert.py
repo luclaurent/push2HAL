@@ -31,7 +31,8 @@ logger_format = (
     "<level>{level: <8}</level> |"
     "<red>LBCONVERT</red> |"
     "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
-    "{extra[ip]} {extra[user]} - <level>{message}</level>"
+    #{extra[ip]} {extra[user]} - "
+    "<level>{message}</level>"
 )
 
 logger.remove()

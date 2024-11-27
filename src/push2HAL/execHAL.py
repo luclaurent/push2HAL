@@ -9,16 +9,15 @@
 ####*****************************************************************************************
 
 
-import os
-import logging
+import os, sys
 import json
+from loguru import logger
 
 from . import libHAL as lib
 from . import libAPIHAL as libAPI
 from . import misc as m
 from . import default as dflt
 
-Logger = logging.getLogger("push2HAL")
 
 
 def runJSON2HAL(
@@ -32,25 +31,28 @@ def runJSON2HAL(
     """execute using arguments"""
     exitStatus = os.EX_CONFIG
     # activate verbose mode
+    logger.remove() #remove the old handler. Else, the old one will work along with the new one you've added below'
     if verbose:
-        Logger.setLevel(logging.DEBUG)
+        logger.add(sys.stderr, level="DEBUG") 
+    else:
+        logger.add(sys.stderr, level="INFO") 
 
-    Logger.info("Run JSON2HAL")
-    Logger.info("")
+    logger.info("Run JSON2HAL")
+    logger.info("")
 
     # activate production mode
     serverType = "preprod"
     testMode = True
     if prod == "prod":
-        Logger.info("Execution mode: use production server (USE WITH CAUTION))")
+        logger.info("Execution mode: use production server (USE WITH CAUTION))")
         serverType = "prod"
         testMode = False
     elif prod == "test":
-        Logger.info("Execution mode: use production server (dry-run))")
+        logger.info("Execution mode: use production server (dry-run))")
         serverType = "prod"
         testMode = True
     else:
-        Logger.info("Dryrun mode: use preprod server")
+        logger.info("Dryrun mode: use preprod server")
         testMode = False
 
     #
@@ -60,16 +62,16 @@ def runJSON2HAL(
         dataJSON = jsonContent
         new_xml = dflt.DEFAULT_UPLOAD_FILE_NAME_XML
     elif os.path.isfile(json_path):
-        Logger.debug("JSON file: {}".format(json_path))
+        logger.debug("JSON file: {}".format(json_path))
         dirPath = os.path.dirname(json_path)
-        Logger.debug("Directory: {}".format(dirPath))
+        logger.debug("Directory: {}".format(dirPath))
         # open and load json file
         f = open(json_path, "r")
         # Reading from file
         dataJSON = json.loads(f.read())
         new_xml = os.path.basename(json_path).replace(".json", ".xml")
     else:
-        Logger.error("JSON file not found")
+        logger.error("JSON file not found")
         exitStatus = os.EX_OSFILE
         return exitStatus
 
@@ -86,20 +88,20 @@ def runJSON2HAL(
             pdf_path = os.path.join(dirPath, dataJSON["file"])
         #
         if os.path.isfile(pdf_path):
-            Logger.debug("PDF file: {}".format(pdf_path))
+            logger.debug("PDF file: {}".format(pdf_path))
         else:
-            Logger.error("PDF file not found")
+            logger.error("PDF file not found")
             exitStatus = os.EX_OSFILE
             return exitStatus
     # deal with specific upload options
     options = dict()
     if completion:
-        Logger.info(
+        logger.info(
             "Specific completion option(s) will be used: {}".format(completion)
         )
         options["completion"] = completion
     if idhal:
-        Logger.info("Deposit on behalf of: {}".format(idhal))
+        logger.info("Deposit on behalf of: {}".format(idhal))
         options["idFrom"] = idhal
     if testMode:
         options["testMode"] = "1"
@@ -117,10 +119,13 @@ def runJSON2HAL(
 
     # upload to HAL
     if credentials:
-        id_hal = lib.upload2HAL(file, payload, credentials, server=serverType)
+        id_hal = lib.upload2HAL(file, 
+                                payload=payload, 
+                                credentials=credentials, 
+                                server=serverType)
         return lib.manageError(id_hal)
     else:
-        Logger.error("No provided credentials")
+        logger.error("No provided credentials")
         exitStatus = os.EX_CONFIG
         return exitStatus
 
@@ -138,33 +143,36 @@ def runPDF2HAL(
     """execute using arguments"""
     exitStatus = os.EX_CONFIG
     # activate verbose mode
+    logger.remove() #remove the old handler. Else, the old one will work along with the new one you've added below'
     if verbose:
-        Logger.setLevel(logging.DEBUG)
+        logger.add(sys.stderr, level="DEBUG") 
+    else:
+        logger.add(sys.stderr, level="INFO") 
 
-    Logger.info("Run PDF2HAL")
-    Logger.info("")
+    logger.info("Run PDF2HAL")
+    logger.info("")
 
     # activate production mode
     serverType = "preprod"
     testMode = False
     if prod == "prod":
-        Logger.info("Execution mode: use production server (USE WITH CAUTION))")
+        logger.info("Execution mode: use production server (USE WITH CAUTION))")
         serverType = "prod"
     elif prod == "test":
-        Logger.info("Execution mode: use production server (dry-run))")
+        logger.info("Execution mode: use production server (dry-run))")
         serverType = "prod"
         testMode = True
     else:
-        Logger.info("Dryrun mode: use preprod server")
+        logger.info("Dryrun mode: use preprod server")
 
     # check if file exists
     if os.path.isfile(pdf_path):
-        Logger.debug("PDF file: {}".format(pdf_path))
+        logger.debug("PDF file: {}".format(pdf_path))
         dirPath = os.path.dirname(pdf_path)
-        Logger.debug("Directory: {}".format(dirPath))
+        logger.debug("Directory: {}".format(dirPath))
         title = m.extract_info(pdf_path)
     else:
-        Logger.error("PDF file not found")
+        logger.error("PDF file not found")
         exitStatus = os.EX_OSFILE
         return exitStatus
 
@@ -176,7 +184,7 @@ def runPDF2HAL(
         if interaction:
             title = m.checkTitle(title)
         else:
-            Logger.info("Force mode: use title '{}'".format(title))
+            logger.info("Force mode: use title '{}'".format(title))
 
         # Search for the PDF title in HAL.science
         selected_result = dict()
@@ -184,7 +192,7 @@ def runPDF2HAL(
             api = libAPI.APIHAL()
             archives_results = api.search(
                 query= {"title": title},
-                returnFields=['title_s','author_full_name_exact','halId_s'],
+                returnFields=['title_s','halId_s','author_full_name_exact'],
                 returnFormat="json")
 
             if archives_results:
@@ -194,37 +202,39 @@ def runPDF2HAL(
                 if "title_s" not in selected_result:
                     title = selected_result
             else:
-                Logger.error("No result found in HAL.science")
+                logger.error("No result found in HAL.science")
                 exitStatus = os.EX_SOFTWARE
                 return exitStatus
 
         if selected_result:
             selected_title = selected_result.get("title_s", "N/A")
-            selected_author = selected_result.get("author_s", "N/A")
+            selected_author = selected_result.get("authFullName_s", "N/A")
             hal_id = selected_result.get("halId_s", None)
 
-            Logger.info("Selected result in archives-ouvertes.fr:")
-            Logger.info("Title: {}".format(selected_title))
-            Logger.info("Author: {}".format(selected_author))
-            Logger.info("HAL-id: {}".format(hal_id))
+            logger.info("Selected result in archives-ouvertes.fr:")
+            logger.info("Title: {}".format(selected_title))
+            logger.info("Author: {}".format(selected_author))
+            logger.info("HAL-id: {}".format(hal_id))
     else:
-        Logger.info("Provided HAL_id: {}".format(halid))
+        logger.info("Provided HAL_id: {}".format(halid))
         hal_id = halid
         # get data from HAL
         api = libAPI.APIHAL()
         dataHAL = api.search(query={"halId_s": hal_id}, 
-                                      returnFormat="json")
+                             returnFields=['title_s','halId_s','author_full_name_exact'],
+                             returnFormat="json")
         
         if len(dataHAL) > 0:
+            logger.debug("Data from HAL: {}".format(dataHAL))
             selected_title = dataHAL[0].get("title_s", "N/A")
-            selected_author = dataHAL[0].get("author_s", "N/A")
+            selected_author = dataHAL[0].get("authFullName_s", "N/A")
             hal_id = dataHAL[0].get("halId_s", None)
 
-            Logger.info("Title: {}".format(selected_title))
-            Logger.info("Author: {}".format(selected_author))
-            Logger.info("HAL-id: {}".format(hal_id))
+            logger.info("Title: {}".format(selected_title))
+            logger.info("Author: {}".format(selected_author))
+            logger.info("HAL-id: {}".format(hal_id))
         else:
-            Logger.error("Document's ID {} not found in HAL".format(hal_id))
+            logger.error("Document's ID {} not found in HAL".format(hal_id))
             exitStatus = os.EX_SOFTWARE
             return exitStatus
 
@@ -240,18 +250,18 @@ def runPDF2HAL(
         if len(tei_content) > 0:
             # write TEI file
             tei_file_path = os.path.join(dirPath, hal_id + ".tei.xml")
-            Logger.debug("Write TEI file: {}".format(tei_file_path))
+            logger.debug("Write TEI file: {}".format(tei_file_path))
             m.writeXML(tei_content, tei_file_path)
 
             options = dict()
             # deal with specific upload options
             if completion:
-                Logger.info(
+                logger.info(
                     "Specific completion option(s) will be used: {}".format(completion)
                 )
                 options["completion"] = completion
             if idhal:
-                Logger.info("Deposit on behalf of: {}".format(idhal))
+                logger.info("Deposit on behalf of: {}".format(idhal))
                 options["idFrom"] = idhal
             options["testMode"] = False
             if testMode:
@@ -268,20 +278,24 @@ def runPDF2HAL(
 
             # upload to HAL
             if credentials:
-                retStatus = lib.upload2HAL(file, payload, credentials, server=serverType)
+                retStatus = lib.upload2HAL(file, 
+                                           payload, 
+                                           hal_id=hal_id,
+                                           credentials=credentials, 
+                                           server=serverType)
                 return lib.manageError(retStatus)
             else:
-                Logger.error("No provided credentials")
+                logger.error("No provided credentials")
                 exitStatus = os.EX_CONFIG
                 return exitStatus
             
         else:
-            Logger.error("Failed to download TEI file.")
+            logger.error("Failed to download TEI file.")
             exitStatus = os.EX_SOFTWARE
             return exitStatus
 
     else:
-        Logger.error("No result selected.")
+        logger.error("No result selected.")
         exitStatus = os.EX_SOFTWARE
         return exitStatus
 
