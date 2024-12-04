@@ -10,7 +10,8 @@
 
 
 from loguru import logger
-import os,sys
+import os
+import sys
 import shutil
 import tempfile
 import requests
@@ -53,24 +54,21 @@ def addFileInXML(inTree, filePath, hal_id="upload"):
     # find section to add file
     inS = inTree.find(".//editionStmt", inTree.nsmap)
     if inS is None:
-        newE = etree.SubElement(inTree, TEI + "editionStmt")  # , nsmap=inTree.nsmap)
+        newE = addElementinTree(inTree, None, "editionStmt")  # , nsmap=inTree.nsmap)
         pos = inTree.find(".//titleStmt", inTree.nsmap)
         pos.addnext(newE)
         inS = inTree.find(".//editionStmt", inTree.nsmap)
     # find subsection
     inSu = inS.find(".//edition", inTree.nsmap)
     if inSu is None:
-        inSu = etree.SubElement(inS, TEI + "edition") #, nsmap=inTree.nsmap)
+        inSu = addElementinTree(inS, None, "edition") #, nsmap=inTree.nsmap)
 
     # check existing file
     # nFile = inS.xpath("//ref[@type='file']") #find('.//ref',inTree.nsmap)
     # add file
     logger.debug("Add file in XML: {}".format(newFilename))
-    nFile = etree.SubElement(inSu, TEI + "ref", nsmap=inTree.nsmap)
-    nFile.set("type", "file")
-    nFile.set("subtype", "author")
-    nFile.set("n", "2")
-    nFile.set("target", newFilename)
+    _ = addElementinTree(inSu, None, "ref",
+                             attr_unique={"type": "file", "subtype": "author", "n": "1", "target": newFilename})
     return newFilename
 
 
@@ -178,10 +176,10 @@ def upload2HAL(file, headers=None, hal_id=None,credentials=None, server="preprod
     else:
         # reove last segement on url 
         url.remove(path='hal/')
-        # append id_hal of the dcument
+        # append id_hal of the decument
         id = hal_id.split('v')[0]
         url = url / id
-        print(url)
+        #
         res = requests.put(
             url=url,
             data=data,
@@ -191,7 +189,7 @@ def upload2HAL(file, headers=None, hal_id=None,credentials=None, server="preprod
     
      
     hal_id = res.status_code
-    if res.status_code == 201:
+    if res.status_code == 201 or res.status_code == 200:
         logger.info("Successfully upload to HAL.")
         # read return message
         xmlResponse = etree.fromstring(res.text.encode("utf-8"))
@@ -219,7 +217,10 @@ def upload2HAL(file, headers=None, hal_id=None,credentials=None, server="preprod
             for i in elem:
                 content = None
                 try:
-                    content = json.loads(i.text)
+                    if isinstance(i.text, str):
+                        content = i.text
+                    else:
+                        content = json.loads(i.text)
                 except:
                     pass
                 if content is None:
@@ -250,123 +251,132 @@ def manageError(e):
         e = os.EX_SOFTWARE
     return e
 
-def setTitles(nInTree, titles, subTitles=None):
+def setTitles(nInTree, titles, 
+              subTitles=None,
+              cleartitle=False,
+              clearsubtitle=False):
     """Add title(s) and subtitle(s) in XML (and specified language)"""
+    # clear existing titles/subtitles
+    if not titles and not subTitles:
+        logger.warning("No title nor subtitle provided")
+        return None
+    if clearsubtitle:
+        removeElementinTree(nInTree, "title", 
+                            attr={"type": "sub"})
+    if cleartitle:
+        removeElementinTree(nInTree, "title", 
+                            nattr={"type": "main"})
+    # prepare data
     if subTitles:
         listTitles = {"titles": titles, "subtitles": subTitles}
     else:
         listTitles = {"titles": titles}
     nTitle = list()
+    # add titles/subtitles
     for k, n in listTitles.items():
-        if type(n) == dict:
-            for l, t in n.items():
-                nTitle.append(etree.SubElement(nInTree, TEI + "title"))
-                if k == "subtitles":
-                    nTitle[-1].set("type", "sub")
-                nTitle[-1].set(dflt.DEFAULT_XML_LANG + "lang", l)
-                nTitle[-1].text = t
-        else:
-            logger.warning("No language for title: force english")
-            nTitle.append(etree.SubElement(nInTree, TEI + "title"))
+        if isinstance(n, str):
+            n = {"en": n}
+        for lang, t in n.items():            
+            attr_content = {dflt.DEFAULT_XML_LANG + "lang": lang}
             if k == "subtitles":
-                nTitle[-1].set("type", "sub")
-            nTitle[-1].set(dflt.DEFAULT_XML_LANG + "lang", "en")
-            nTitle[-1].text = n
+                attr_content["type"] = "sub"
+            
+            nTitle.append(addElementinTree(nInTree,t,
+                                      "title", 
+                                      attr_unique=attr_content, 
+                                      remove_empty_data=True))
     return nTitle
 
 
 def getNameFormated(a):
     """format name from dict to list"""
-    l = [a["firstname"]]
-    l.append(a.get("middle", None))
-    l.append(a["lastname"])
-    l = list(filter(None, l))
-    return l
+    listName = [a["firstname"]]
+    listName.append(a.get("middle", None))
+    listName.append(a["lastname"])
+    listName = list(filter(None, listName))
+    return listName
 
 
-def setAuthors(inTree, authors):
+def setAuthors(inTree, authors, clear=False):
     """Add authors in XML (and linked to affiliation)"""
+    if not authors:
+        logger.warning("No author provided")
+        return None
+    # clear authors
+    if clear:
+        removeElementinTree(inTree, "author")
+    # add authors
     nAuthors = list()
     for a in authors:
         # format name
-        nameFormated = getNameFormated(a)
-        nAuthors.append(etree.SubElement(inTree, TEI + "author"))
+        nameFormated = getNameFormated(a)        
         # roles: https://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:relator&fl=*&wt=xml
-        if "role" in a:
-            nAuthors[-1].set("role", a["role"])
+        if a.get('role', None):   
+            attr_built = {"role": a["role"]}
         else:
             logger.warning(
                 "No role for author {} {}: force aut".format(
                     nameFormated[0], nameFormated[-1]
                 )
             )
-            nAuthors[-1].set("role", "aut")
-        persName = etree.SubElement(nAuthors[-1], TEI + "persName")
-        forename = etree.SubElement(persName, TEI + "forename")
-        forename.set("type", "first")
-        forename.text = nameFormated[0]
+            attr_built = {"role": "aut"}
+        nAuthors.append(addElementinTree(inTree, None, "author", attr_unique=attr_built))
+        persName = addElementinTree(nAuthors[-1], None, "persName")
+        _ = addElementinTree(persName, nameFormated[0], "forename", attr_unique={"type": "first"})
         if len(nameFormated) > 2:
-            forename = etree.SubElement(persName, TEI + "forename")
-            forename.set("type", "middle")
-            forename.text = nameFormated[1]
-        surname = etree.SubElement(persName, TEI + "surname")
-        surname.text = nameFormated[-1]
+            _ = addElementinTree(persName, nameFormated[1], "forename", attr_unique={"type": "middle"})
+        _ = addElementinTree(persName, nameFormated[-1], "surname")
         if a.get("email", None):
-            idA = etree.SubElement(nAuthors[-1], TEI + "email")
-            idA.text = a["email"]
+            _ = addElementinTree(nAuthors[-1], a["email"], "email")
         if a.get("idhal", None):
-            idA = etree.SubElement(nAuthors[-1], TEI + "idno")
-            idA.set("type", "idhal")
-            idA.text = a["idhal"]
+            _ = addElementinTree(nAuthors[-1], a["idhal"], "idno", attr_unique={"type": "idhal"})
         if a.get("halauthor", None):
-            idA = etree.SubElement(nAuthors[-1], TEI + "idno")
-            idA.set("type", "halauthor")
-            idA.text = a["halauthor"]
+            _ = addElementinTree(nAuthors[-1], a["halauthor"], "idno", attr_unique={"type": "halauthor"})
         if a.get("url", None):
-            idA = etree.SubElement(nAuthors[-1], TEI + "ptr")
-            idA.set("type", "url")
-            idA.set("target", a["url"])
+            _ = addElementinTree(nAuthors[-1], None, "ptr", 
+                                   attr_unique={"type": "url", "target": a["url"]})
         if a.get("orcid", None):
-            idA = etree.SubElement(nAuthors[-1], TEI + "idno")
-            idA.set("type", dflt.ID_ORCID_URL.url)
-            idA.text = a["orcid"]
+            _ = addElementinTree(nAuthors[-1], a["orcid"], "idno", 
+                                   attr_unique={"type": dflt.ID_ORCID_URL.url})
         if a.get("arxiv", None):
-            idA = etree.SubElement(nAuthors[-1], TEI + "idno")
-            idA.set("type", dflt.ID_ARXIV_URL)
-            idA.text = a["arxiv"]
+            _ = addElementinTree(nAuthors[-1], a["arxiv"], "idno", 
+                                   attr_unique={"type": dflt.ID_ARXIV_URL})
         if a.get("researcherid", None):
-            idA = etree.SubElement(nAuthors[-1], TEI + "idno")
-            idA.set("type", dflt.ID_RESEARCHERID_URL)
-            idA.text = a["researcherid"]
+            _ = addElementinTree(nAuthors[-1], a["researcherid"], "idno", 
+                                   attr_unique={"type": dflt.ID_RESEARCHERID_URL})
         if a.get("idref", None):
-            idA = etree.SubElement(nAuthors[-1], TEI + "idno")
-            idA.set("type", dflt.ID_IDREF_URL)
-            idA.text = a["idref"]
+            _ = addElementinTree(nAuthors[-1], a["idref"], "idno", 
+                                   attr_unique={"type": dflt.ID_IDREF_URL})
         if a.get("affiliation", None):
             if type(a["affiliation"]) is not list:
                 list_aff = [a["affiliation"]]
             else:
                 list_aff = a["affiliation"]
             for aff in list_aff:
-                nAff = etree.SubElement(nAuthors[-1], TEI + "affiliation")
-                nAff.set("ref", "#localStruct-" + aff)
+                _ = addElementinTree(nAuthors[-1], None, "affiliation", 
+                                        attr_unique={"ref": "#localStruct-" + aff})
         if a.get("affiliationHAL", None):
             if type(a["affiliationHAL"]) is not list:
                 list_aff = [a["affiliationHAL"]]
             else:
                 list_aff = a["affiliationHAL"]
-            for aff in list_aff:
-                nAff = etree.SubElement(nAuthors[-1], TEI + "affiliation")
+            for aff in list_aff:                
                 idStrut = aff
                 idStruct = re.sub("^#struct-", "", idStrut)
-                nAff.set("ref", "#struct-" + idStruct)
+                _ = addElementinTree(nAuthors[-1], None, "affiliation", attr_unique={"ref": idStruct})
     return nAuthors
 
 
-def setLicence(inTree, licence):
+def setLicence(inTree, licence, clear = False):
     """Set licence in XML"""
-    availability = etree.SubElement(inTree, TEI + "availability")
-    lic_cc = etree.SubElement(availability, TEI + "licence")
+    if not licence:
+        logger.warning("No licence provided")
+        return None
+    # clear licence
+    if clear:
+        removeElementinTree(inTree, "licence")
+    # add licence
+    availability = addElementinTree(inTree, None, "availability")
     # all licences: https://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:licence&fl=*&wt=xml
     if type(licence) is dict:
         licenceV = licence["licence"]
@@ -374,7 +384,8 @@ def setLicence(inTree, licence):
         licenceV = licence
     logger.warning("licence: {} (works only for Creative Commons one)".format(licenceV))
     buildURL = dflt.ID_CC_URL / licenceV / "/"
-    lic_cc.set("target", buildURL.url)
+    lic_cc = addElementinTree(availability, None, "licence", attr_unique={'target': buildURL.url})
+    return lic_cc
 
 
 def setStamps(inTree, stamps):
@@ -392,6 +403,9 @@ def setStamps(inTree, stamps):
 
 
 def getAudience(notes):
+    if not notes:
+        logger.warning("No licence provided")
+        return None
     # see all audience codes: https://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:audience&fl=*&wt=xml
     # default audience
     audienceFlag = notes.get("audience", dflt.DEFAULT_AUDIENCE)
@@ -477,7 +491,7 @@ def getProceedings(notes):
     return proFlag
 
 
-def setNotes(inTree, notes):
+def setNotes(inTree, notes, clear=False):
     """Set notes in XML
     NOTE: additionnal notes are supported by HAL but not included here
 
@@ -499,61 +513,60 @@ def setNotes(inTree, notes):
         <note type="pastel_library" n="7"/><!-- %%pastel_library : http://api-preprod.archives-ouvertes.fr/ref/metadataList/?q=metaName_s:pastel_library&fl=*&wt=xml - -> 
 
     """
+    if not notes:
+        logger.warning("No notes provided")
+        return None
+    # clear notes
+    if clear:
+        removeElementinTree(inTree, "notesStmt")
     nNotes = list()
     # add element for notes
-    idN = etree.SubElement(inTree, TEI + "notesStmt")
+    idN = addElementinTree(inTree, None, "notesStmt")
     # define audience
-    nNotes.append(etree.SubElement(idN, TEI + "note"))
-    nNotes[-1].set("type", "audience")
-    nNotes[-1].set("n", getAudience(notes))
+    nNotes.append(addElementinTree(idN, None, "note", 
+                  attr_unique={"type": "audience", "n": getAudience(notes)}))
     # define invited
-    nNotes.append(etree.SubElement(idN, TEI + "note"))
-    nNotes[-1].set("type", "invited")
-    nNotes[-1].set("n", getInvited(notes))
+    nNotes.append(addElementinTree(idN, None, "note", 
+                  attr_unique={"type": "invited", "n": getInvited(notes)}))
     # define popular
-    nNotes.append(etree.SubElement(idN, TEI + "note"))
-    nNotes[-1].set("type", "popular")
-    nNotes[-1].set("n", getPopular(notes))
+    nNotes.append(addElementinTree(idN, None, "note",
+                  attr_unique={"type": "popular", "n": getPopular(notes)}))
     # define peer
-    nNotes.append(etree.SubElement(idN, TEI + "note"))
-    nNotes[-1].set("type", "peer")
-    nNotes[-1].set("n", getPeer(notes))
+    nNotes.append(addElementinTree(idN, None, "note",
+                  attr_unique={"type": "peer", "n": getPeer(notes)}))
     # define proceedings
-    nNotes.append(etree.SubElement(idN, TEI + "note"))
-    nNotes[-1].set("type", "proceedings")
-    nNotes[-1].set("n", getProceedings(notes))
+    nNotes.append(addElementinTree(idN, None, "note",
+                  attr_unique={"type": "proceedings", "n": getProceedings(notes)}))
 
     if notes.get("comment", None):
-        nNotes.append(etree.SubElement(idN, TEI + "note"))
-        nNotes[-1].set("type", "commentary")
-        nNotes[-1].text = notes.get("comment")
+        nNotes.append(addElementinTree(idN, notes.get("comment"), "note",
+                                       attr_unique={"type": "commentary"},
+                                       remove_empty_data=True))
     if notes.get("description", None):
-        nNotes.append(etree.SubElement(idN, TEI + "note"))
-        nNotes[-1].set("type", "description")
-        nNotes[-1].text = notes.get("description")
-
+        nNotes.append(addElementinTree(idN, notes.get("description"), "note",
+                                       attr_unique={"type": "description"},
+                                       remove_empty_data=True))
     return nNotes
 
 
-def setAbstract(inTree, abstracts):
+def setAbstract(inTree, abstracts, clear=False):
     """Add abstract in XML (and specified language)"""
+    # clear abstract
+    if clear:
+        removeElementinTree(inTree, "abstract")
     if abstracts is None:
         logger.warning("No provided abstract")
         return None
     nAbstract = list()
-    if type(abstracts) == str():
+    if isinstance(abstracts, str):
         logger.warning("No language for abstract: force english")
-        nAbstract.append(etree.SubElement(inTree, TEI + "abstract"))
-        nAbstract[-1].set(dflt.DEFAULT_XML_LANG + "lang", "en")
-        nAbstract[-1].text = abstracts
+        nAbstract.append(addElementinTree(inTree, abstracts, "abstract",
+                                          attr_unique={dflt.DEFAULT_XML_LANG + "lang": "en"},
+                                          remove_empty_data=True)) 
     else:
-        nKeywords = list()
         for lk, vk in abstracts.items():
-            nAbstract.append(etree.SubElement(inTree, TEI + "abstract"))
-            nAbstract[-1].set(dflt.DEFAULT_XML_LANG + "lang", lk)
-            nAbstract[-1].text = vk
-    return nAbstract
-    
+            nAbstract.append(addElementinTree(inTree, vk, "abstract",
+                                              attr_unique={dflt.DEFAULT_XML_LANG + "lang": lk},))
     return nAbstract
 
 
@@ -561,14 +574,20 @@ def setID(inTree, ids, typeId):
     """Add ID of document using idno"""
     idT = None
     if ids:
-        idT = etree.SubElement(inTree, TEI + "idno")
-        idT.set("type", typeId)
-        idT.text = ids
+        idT = addElementinTree(inTree, ids, "idno", 
+                               attr_unique={"type": typeId})
     return idT
 
 
-def setIDS(inTree, data):
+def setIDS(inTree, data, clear=False):
     """Set all IDs"""
+    if not data:
+        logger.warning("No ID provided")
+        return None
+    # clear IDs
+    if clear:
+        removeElementinTree(inTree, "idno")
+    # set IDs
     lID = []
     if data.get("nnt", None):
         lID.append(setID(inTree, data.get("nnt"), "nnt"))
@@ -619,21 +638,13 @@ def setIDS(inTree, data):
             logger.warning("eISSN not valid: {}, continue...".format(data.get("eissn")))
     lID.append(setID(inTree, data.get("eissn"), "eissn"))
     if data.get("j", None):
-        lID.append(inTree.SubElement(inTree, TEI + "title"))
-        lID[-1].set("level", "j")
-        lID[-1].text = data.get("j")
+        lID.append(addElementinTree(inTree,data.get("j"), "title", attr_unique={"level": "j"}))
     if data.get("m", None):
-        lID.append(inTree.SubElement(inTree, TEI + "title"))
-        lID[-1].set("level", "m")
-        lID[-1].text = data.get("m")
+        lID.append(addElementinTree(inTree,data.get("m"), "title", attr_unique={"level": "m"}))
     if data.get("booktitle", None):
-        lID.append(inTree.SubElement(inTree, TEI + "title"))
-        lID[-1].set("level", "m")
-        lID[-1].text = data.get("booktitle")
+        lID.append(addElementinTree(inTree,data.get("booktitle"), "title", attr_unique={"level": "m"}))
     if data.get("source", None):
-        lID.append(inTree.SubElement(inTree, TEI + "title"))
-        lID[-1].set("level", "m")
-        lID[-1].text = data.get("source")
+        lID.append(addElementinTree(inTree,data.get("source"), "title", attr_unique={"level": "m"}))
     return lID
 
 
@@ -664,7 +675,7 @@ def setConference(inTree, data):
         idT.text = "conferenceOrganizer"
         #
         dataORG = data.get("organizer")
-        if type(dataORG) != list:
+        if not isinstance(dataORG, list):
             dataORG = [dataORG]
             for d in dataORG:
                 idT = etree.SubElement(idM, TEI + "name")
@@ -673,79 +684,86 @@ def setConference(inTree, data):
     return []
 
 
-def setLanguage(inTree, language):
+def setLanguage(inTree, language, clear=False):
     """Set main language in XML"""
-    langUsage = etree.SubElement(inTree, TEI + "langUsage")
-    if language is None:
+    # clear language
+    idL= None
+    if clear:
+        removeElementinTree(inTree, "langUsage")
+    langUsage = addElementinTree(inTree, None, "langUsage")
+    if language is None and len(getElement(langUsage, "language")) == 0:
         logger.warning("No language provided - force {}".format(dflt.DEFAULT_LANG_DOC))
         language = dflt.DEFAULT_LANG_DOC
-    idL = etree.SubElement(langUsage, TEI + "language")
-    idL.set("ident", language)
+    if language is not None and len(getElement(langUsage, "language")) == 0:
+        idL = addElementinTree(langUsage,None, "language", attr_unique={"ident": language})
+    return idL
 
 
-def setKeywords(inTree, keywords):
+def setKeywords(inTree, keywords, clear=False):
     """Set keywords in XML (and specified language)"""
+    # clear keywords
+    if clear:
+        removeElementinTree(inTree, "keywords")
     if keywords is None:
         logger.warning("No keywords provided")
         return None
     #
-    if type(keywords) == str:
+    if isinstance(keywords, str):
         keywords = [keywords]
-    itK = etree.SubElement(inTree, TEI + "keywords")
-    itK.set("scheme", "author")
-    if type(keywords) == list():
+    itK = addElementinTree(inTree, None, 
+                           "keywords", 
+                           attr_unique={"scheme": "author"})
+    if isinstance(keywords, list):
         logger.warning("No language for keywords: force english")
         nKeywords = list()
         for k in keywords:
-            nKeywords.append(etree.SubElement(inTree, TEI + "keyword"))
-            nKeywords[-1].set(dflt.DEFAULT_XML_LANG + "lang", "en")
-            nKeywords[-1].text = k
+            nKeywords.append(addElementinTree(inTree, k, "keyword",
+                                              attr_unique={dflt.DEFAULT_XML_LANG + "lang": "en"},
+                                              force=True,
+                                              remove_empty_data=True))
     else:
         nKeywords = list()
         for lk, vk in keywords.items():
-            if type(vk) != list:
+            if not isinstance(vk, list):
                 vk = [vk]
             for i in vk:
-                nKeywords.append(etree.SubElement(itK, TEI + "term"))
-                nKeywords[-1].set(dflt.DEFAULT_XML_LANG + "lang", lk)
-                nKeywords[-1].text = i
+                nKeywords.append(addElementinTree(itK, i, "term", 
+                                                  attr_unique={dflt.DEFAULT_XML_LANG + "lang": lk},
+                                                  force=True,
+                                                  remove_empty_data=True))
+
     return nKeywords
 
 
-def setCodes(inTree, data):
+def setCodes(inTree, data, clear=False):
     """Set classification codes"""
+    # clear codes
+    if clear:
+        removeElementinTree(inTree, "classCode")
     if data is None:
         logger.warning("No classification codes provided")
         return None
     #
     idS = list()
     if data.get("classification"):
-        idS.append(etree.SubElement(inTree, TEI + "classCode"))
-        idS[-1].set("scheme", "classification")
-        idS[-1].text = data.get("classification")
+        idS.append(addElementinTree(inTree, data.get("classification"), "classCode",
+                                    attr_unique={"scheme": "classification"}))
     if data.get("acm"):
-        idS.append(etree.SubElement(inTree, TEI + "classCode"))
-        idS[-1].set("scheme", "acm")
-        idS[-1].text = data.get("acm")
+        idS.append(addElementinTree(inTree, data.get("acm"), "classCode",
+                                    attr_unique={"scheme": "acm"}))
     if data.get("mesh"):
-        idS.append(etree.SubElement(inTree, TEI + "classCode"))
-        idS[-1].set("scheme", "mesh")
-        idS[-1].text = data.get("mesh")
+        idS.append(addElementinTree(inTree, data.get("mesh"), "classCode",
+                                    attr_unique={"scheme": "mesh"}))
     if data.get("jel"):
-        idS.append(etree.SubElement(inTree, TEI + "classCode"))
-        idS[-1].set("scheme", "jel")
-        idS[-1].text = data.get("jel")
+        idS.append(addElementinTree(inTree, data.get("jel"), "classCode",
+                                    attr_unique={"scheme": "jel"}))
     halDomains = data.get("halDomain")
     if halDomains:
-        if type(halDomains) != list:
+        if not isinstance(halDomains, list):
             halDomains = [halDomains]
-        for id, d in enumerate(halDomains):
-            idS.append(etree.SubElement(inTree, TEI + "classCode"))
-            if id == 0:
-                idS[-1].set("scheme", "halDomain")
-            else:
-                idS[-1].set("scheme", "halDomain")
-            idS[-1].set("n", d)
+        for id, d in enumerate(halDomains):            
+            idS.append(addElementinTree(inTree, None, "classCode",
+                                        attr_unique={"scheme": "halDomain", "n": d}))
     return idS
 
 
@@ -926,10 +944,10 @@ def getTypeDoc(typeDoc):
 
 def setType(inTree, typeDoc=None):
     """Set type of document"""
+    idT = None
     if typeDoc:
-        idT = etree.SubElement(inTree, TEI + "classCode")
-        idT.set("scheme", "halTypology")
-        idT.set("n", getTypeDoc(typeDoc))
+        idT = addElementinTree(inTree, None, "classCode", 
+                               attr_unique={"scheme": "halTypology", "n": getTypeDoc(typeDoc)})
     return idT
 
 
@@ -967,9 +985,9 @@ def setAddress(inTree, address):
     addressLine = None
     addressCountry = None
     addressCountryCode = None
-    if type(address) == str:
+    if isinstance(address, str):
         addressLine = address
-    elif type(address) == dict:
+    elif isinstance(address, dict):
         addressLine = address.get("line", None)
         addressCountry = address.get("country", None)
     # get country name in plain text in string
@@ -979,13 +997,10 @@ def setAddress(inTree, address):
     addressCountryCode = m.getAlpha2Country(addressCountry)
     # set address
     idA = list()
-    idA.append(etree.SubElement(inTree, TEI + "addrLine"))
-    idA[-1].text = addressLine
+    idA.append(addElementinTree(inTree, addressLine, "addrLine"))
     if addressCountryCode is not None:
-        idA.append(etree.SubElement(inTree, TEI + "country"))
-        idA[-1].set("key", addressCountryCode)
-    if addressCountry:
-        idA[-1].text = addressCountry
+        idA.append(addElementinTree(inTree, addressCountry, "country",
+                                    attr_unique={"key": addressCountryCode}))
     return idA
 
 
@@ -999,42 +1014,43 @@ def setStructure(inTree, data, id=None):
         orgType = getStructType(data.get("name", None))
         if orgType is None:
             orgType = dflt.DEFAULT_STRUCT_TYPE
-    idS = etree.SubElement(inTree, TEI + "org")
-    idS.set("type", orgType)
     if data.get("id", None) is None:
         logger.warning(
             "No id for structure {}: force manual {}".format(data.get("name", None), id)
         )
-    idS.set(dflt.DEFAULT_XML_LANG + "id", "localStruct-" + data.get("id", str(id)))
-    idD = etree.SubElement(idS, TEI + "orgName")
-    idD.text = data.get("name")
+    idS = addElementinTree(inTree, None, "org",
+                        attr_unique={"type": orgType,
+                                    dflt.DEFAULT_XML_LANG + "id": "localStruct-" + data.get("id", str(id))})
+    idD = addElementinTree(idS, data.get("name"), "orgName")
     if data.get("acronym", None):
-        idD = etree.SubElement(idS, TEI + "orgName")
-        idD.set("type", "acronym")
-        idD.text = data.get("acronym")
+        idD = addElementinTree(idS, data.get("acronym"), "orgName", 
+                               attr_unique={"type": "acronym"},
+                               remove_empty_data=True)
     if data.get("address", None) or data.get("url", None):
-        idD = etree.SubElement(idS, TEI + "desc")
+        idD = addElementinTree(idS, None, "desc")
     if data.get("address", None):
-        idA = etree.SubElement(idD, TEI + "address")
+        idA = addElementinTree(idD, None, "address")
         idS = setAddress(idA, data.get("address"))
     if data.get("url", None):
-        idU = etree.SubElement(idD, TEI + "ref")
-        idU.set("type", "url")
-        idU.set("target", data.get("url"))
+        _ = addElementinTree(idD, None, "ref",
+                               attr_unique={"type": "url", "target": data.get("url")})
     return idS
 
 
-def setStructures(inTree, data):
+def setStructures(inTree, data, clear=False):
     """Set all structures in XML"""
+    # clear structures
+    if clear:
+        removeElementinTree(inTree, "listOrg")
     if data is None : 
         logger.debug("No structures provided")
         return None
     # if no dictionary: one structure
-    if type(data) != list:
+    if not isinstance(data, list):
         data = [data]
     # set all structures
-    idSS = etree.SubElement(inTree, TEI + "listOrg")
-    idSS.set("type", "structures")
+    idSS = addElementinTree(inTree, None, "listOrg",
+                            attr_unique={"type": "structures"})
     idA = list()
     for i in data:
         idA.append(setStructure(idSS, i))
@@ -1046,7 +1062,7 @@ def setEditors(inTree, data):
     if data is None:
         logger.debug("No scientific editor(s) provided")
         return None
-    if type(data) != list:
+    if not isinstance(data, list):
         data = [data]
     listId = list()
     for i in data:
@@ -1055,8 +1071,9 @@ def setEditors(inTree, data):
     return listId
 
 
-def setInfoDoc(inTree, data):
+def setInfoDoc(inTree, data, clear=False):
     """Set info of the document (publisher, serie, volume...) in XML"""
+    # clear info
     if data is None:
         logger.debug("No document info provided")
         return None
@@ -1064,7 +1081,7 @@ def setInfoDoc(inTree, data):
     listId = list()
     dataPublisher = data.get("publisher", None)
     if dataPublisher:
-        if type(dataPublisher) != list:
+        if not isinstance(dataPublisher, list):
             dataPublisher = [dataPublisher]
         for p in dataPublisher:
             listId.append(etree.SubElement(inTree, TEI + "publisher"))
@@ -1112,7 +1129,7 @@ def setInfoDoc(inTree, data):
     return listId
 
 
-def setSeries(inTree, data):
+def setSeries(inTree, data, clear=False):
     """Set series (book, proceedings...) in XML"""
     if data is None:
         logger.debug("No series provided")
@@ -1128,8 +1145,12 @@ def setSeries(inTree, data):
     return listId
 
 
-def setRef(inTree, data):
+def setRef(inTree, data, clear=False):
     """Set external references in XML"""
+    # clear data
+    if clear:
+        removeElementinTree(inTree, "idno")
+        removeElementinTree(inTree, "ref")
     if data is None:
         logger.debug("No external reference provided")
         return None
@@ -1151,23 +1172,111 @@ def setRef(inTree, data):
     listId = list()
     for it in items:
         if data.get(it, None):
-            listId.append(etree.SubElement(inTree, TEI + "idno"))
-            listId[-1].set("type", it)
-            listId[-1].text = data.get(it)
+            listId.append(addElementinTree(inTree, data.get(it), "idno", 
+                                           attr_unique={"type": it},
+                                           remove_empty_data=True))
     items = ["publisher"]
     items.extend(["link" + str(i) for i in range(0, 10)])
     for it in items:
         if data.get(it, None):
-            listId.append(etree.SubElement(inTree, TEI + "ref"))
+            
             if it == "publisher":
-                listId[-1].set("type", it)
+                attr_built = {"type": it}
             else:
-                listId[-1].set("type", "seeAlso")
-            listId[-1].text = data.get(it)
+                attr_built = {"type": "seeAlso"}
+            listId.append(addElementinTree(inTree, data.get(it), "ref", 
+                                           attr_unique=attr_built,
+                                           force=True,
+                                           remove_empty_data=True))
     return listId
 
+def getElement(inTree, tag, 
+               attr=None, 
+               nattr=None,
+               strict=False, 
+               namespace=TEI):
+    """ Get element in XML tree """
+    # find elements with tag
+    elts = inTree.findall(".//{}".format(tag),inTree.nsmap)
+    # find element with tag and unique attribute(s)
+    if attr or nattr:
+        elt = list()
+        for e in elts:
+            delete=False
+            if attr:
+                for k,v in attr.items():                
+                    if strict:
+                        if e.get(k) != v:                
+                            delete = True
+                            break
+                    else:
+                        if k not in e.attrib:
+                            delete = True
+                            break
+            if nattr:
+                for k,v in nattr.items():                
+                    if strict:
+                        if e.get(k) != v:                
+                            delete = False
+                            break
+                    else:
+                        if k not in e.attrib:
+                            delete = False
+                            break
+            if not delete:
+                elt.append(e)
+    else:
+        elt = elts
+    return elt
 
-def buildXML(data):
+def addElementinTree(inTree, data, tag, 
+                     attr_unique=None,
+                     attr=None, 
+                     remove_empty_data=False,
+                     clear=False,
+                     force=False,
+                     namespace=TEI):
+    """ Add element or update it if not available """
+    # find elements with tag and attribute()
+    elt = getElement(inTree, tag, attr_unique, strict=True)
+    if clear:
+        inTree.remove(elt)
+    # many elements
+    if len(elt) > 1:
+        logger.warning("Many elements found: {}".format(elt))
+    elif len(elt) == 1:
+        elt = elt[0]
+    else:
+        elt = None
+    # force mode (in case of allowed duplicate elements)
+    if force:
+        elt = None
+    #
+    if elt is None:
+        elt = etree.SubElement(inTree, namespace + tag)
+    if attr_unique:
+        for k,v in attr_unique.items():
+            elt.set(k,v)
+    if attr:
+        for k,v in attr.items():
+            elt.set(k,v)
+    if data:
+        elt.text = data
+    elif remove_empty_data:
+        inTree.remove(elt)
+    
+    return elt       
+
+def removeElementinTree(inTree, tag, attr=None, nattr=None, namespace=TEI):
+    """ Remove element in XML tree """
+    elts = getElement(inTree, tag, attr, nattr)
+    for e in elts:
+        inTree.remove(e)
+    return inTree
+    
+
+
+def buildXML(data, inTree=None):
     """Build the XML file from data"""
     logger.debug("Open XML tree with namespace")
 
@@ -1175,80 +1284,107 @@ def buildXML(data):
     #     if not k:
     #         k = ''
     #     etree.register_namespace(k, v)
-    #
-    tei = etree.Element(TEI + "TEI", nsmap=dflt.DEFAULT_NAMESPACE_XML)
+    # load existing XML tree
+    if inTree:
+        tei = inTree
+    else:
+        logger.debug('Create new XML tree')
+        tei = etree.Element(TEI + "TEI", nsmap=dflt.DEFAULT_NAMESPACE_XML)
     # tei.set("xmlns","http://www.tei-c.org/ns/1.0")
     # tei.set("xmlns:hal","http://hal.archives-ouvertes.fr/")
     logger.debug("Add first elements")
-    text = etree.SubElement(tei, TEI + "text")
-    body = etree.SubElement(text, TEI + "body")
-    listBibl = etree.SubElement(body, TEI + "listBibl")
-    biblFull = etree.SubElement(listBibl, TEI + "biblFull")
+    text = addElementinTree(tei, None, "text")
+    body = addElementinTree(text, None, "body")
+    listBibl = addElementinTree(body, None, "listBibl")
+    biblFull = addElementinTree(listBibl, None, "biblFull")
     logger.debug("Start to add metadata")
     # add title(s)/author
     logger.debug("Add title(s) 1/2")
-    titleStmt = etree.SubElement(biblFull, TEI + "titleStmt")
-    title = setTitles(titleStmt, data.get("title", None), data.get("subtitle", None))
+    titleStmt = addElementinTree(biblFull, None, "titleStmt")
+    # add titles/subtitles
+    _ = setTitles(titleStmt, 
+                    data.get("title", None), 
+                    data.get("subtitle", None),
+                    cleartitle='title' in data.get('remove',[]),
+                    clearsubtitle='subtitle' in data.get('remove',[])
+                    )
     logger.debug("Add authors 1/2")
-    authors = setAuthors(titleStmt, data.get("authors", None))
+    _ = setAuthors(titleStmt, data.get("authors", None),
+                         clear='authors' in data.get('remove',[]))
     # # add file
     # if data.get('file',None):
     #     logger.debug('Add file')
     #     addFileInXML(biblFull,data.get('file'))
     # add licence
-    if data.get("licence", None):
-        logger.debug("Add licence")
-        publicationStmt = etree.SubElement(biblFull, TEI + "publicationStmt")
-        setLicence(publicationStmt, data.get("licence"))
+    logger.debug("Add licence")
+    publicationStmt = addElementinTree(biblFull, None, "publicationStmt")
+    setLicence(publicationStmt, data.get("licence"),
+                clear='licence' in data.get('remove',[]))
     # add notes
-    if data.get("notes", None):
-        logger.debug("Add notes")
-        setNotes(biblFull, data.get("notes"))
+    logger.debug("Add notes")
+    setNotes(biblFull, data.get("notes",None),
+                clear='notes' in data.get('remove',[]))
     ## new section
-    sourceDesc = etree.SubElement(biblFull, TEI + "sourceDesc")
-    biblStruct = etree.SubElement(sourceDesc, TEI + "biblStruct")
-    analytic = etree.SubElement(biblStruct, TEI + "analytic")
+    sourceDesc = addElementinTree(biblFull,None, "sourceDesc")
+    biblStruct = addElementinTree(sourceDesc,None, "biblStruct")
+    analytic = addElementinTree(biblStruct,None, "analytic")
     # add title(s)
     logger.debug("Add title(s) 2/2")
-    titleB = setTitles(analytic, data.get("title", None), data.get("subtitle", None))
+    _ = setTitles(analytic, 
+                       data.get("title", None),
+                       data.get("subtitle", None),
+                       cleartitle='title' in data.get('remove',[]),
+                       clearsubtitle='subtitle' in data.get('remove',[]))
     logger.debug("Add authors 2/2")
-    authorsB = setAuthors(analytic, data.get("authors", None))
+    _ = setAuthors(analytic, data.get("authors", None),
+                          clear='authors' in data.get('remove',[]))
     # add identifications data
     logger.debug("Add identification numbers")
-    monogr = etree.SubElement(biblStruct, TEI + "monogr")
-    setIDS(monogr, data.get("ID", None))
+    monogr = addElementinTree(biblStruct, None, "monogr")
+    setIDS(monogr, data.get("ID", None),
+           clear='ID' in data.get('remove',[]))
     # add bib information relative to document
     logger.debug("Add situation value for document")
-    imprint = etree.SubElement(monogr, TEI + "imprint")
+    imprint = addElementinTree(monogr, None, "imprint", 
+                               clear='infoDoc' in data.get('remove',[]))
     setInfoDoc(imprint, data.get("infoDoc", None))
     # add series description for book, proceedings...
     logger.debug("Add series description")
-    series = etree.SubElement(biblStruct, TEI + "series")
+    series = addElementinTree(biblStruct, None, "series",
+                              clear='series' in data.get('remove',[]))
     setSeries(series, data.get("series", None))
     # add external ref of document
     logger.debug("Add external reference(s)")
-    setRef(biblStruct, data.get("extref", None))
+    setRef(biblStruct, data.get("extref", None),
+           clear='extref' in data.get('remove',[]))
     # new section
-    profileDesc = etree.SubElement(biblFull, TEI + "profileDesc")
+    profileDesc = addElementinTree(biblFull, None, "profileDesc")
+    # add language
     logger.debug("Add language")
-    setLanguage(profileDesc, data.get("lang", None))
-    textClass = etree.SubElement(profileDesc, TEI + "textClass")
+    setLanguage(profileDesc, data.get("lang", None),
+                clear='lang' in data.get('remove',[]))
+    # new section
+    textClass = addElementinTree(profileDesc, None, "textClass")
     # add keywords
     logger.debug("Add keywords")
-    setKeywords(textClass, data.get("keywords", None))
+    setKeywords(textClass, data.get("keywords", None),
+                clear='keywords' in data.get('remove',[]))
     # add classification codes
     logger.debug("Add classification codes")
-    setCodes(textClass, data.get("codes", None))
+    setCodes(textClass, data.get("codes", None),
+             clear='codes' in data.get('remove',[]))
     # set type of document
     logger.info("Add type of document: {}".format(data.get("type", None)))
     setType(textClass, data.get("type", None))
     # add abstract(s)
     logger.debug("Add abstract(s)")
-    setAbstract(profileDesc, data.get("abstract", None))
+    setAbstract(profileDesc, data.get("abstract", None), 
+                clear='abstract' in data.get('remove',[]))
     # new section
-    back = etree.SubElement(text, TEI + "back")
+    back = addElementinTree(text, None, "back")
     # add structure(s)
     logger.debug("Add structure(s)")
-    setStructures(back, data.get("structures", None))
+    setStructures(back, data.get("structures", None), 
+                  clear='structures' in data.get('remove',[]))
 
     return tei

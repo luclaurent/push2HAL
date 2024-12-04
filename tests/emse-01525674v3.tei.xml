@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:hal="http://hal.archives-ouvertes.fr/" version="1.1" xsi:schemaLocation="http://www.tei-c.org/ns/1.0 http://api.archives-ouvertes.fr/documents/aofr-sword.xsd">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>HAL TEI export of emse-01525674v3</title>
+      </titleStmt>
+      <publicationStmt>
+        <distributor>CCSD</distributor>
+        <availability status="restricted">
+          <licence target="http://creativecommons.org/licenses/by/">Attribution</licence>
+        </availability>
+        <date when="2024-11-17T07:53:26+01:00"/>
+      </publicationStmt>
+      <sourceDesc>
+        <p part="N">HAL API platform</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <listBibl>
+        <biblFull>
+          <titleStmt>
+            <title xml:lang="en">An overview of gradient-enhanced metamodels with applications</title>
+            <author role="aut">
+              <persName>
+                <forename type="first">Luc</forename>
+                <surname>Laurent</surname>
+              </persName>
+              <email type="md5">5864ebb79deb6e7f930fc5bdad943da7</email>
+              <email type="domain">lecnam.net</email>
+              <idno type="idhal" notation="string">luc-laurent</idno>
+              <idno type="idhal" notation="numeric">826</idno>
+              <idno type="halauthorid" notation="string">32468-826</idno>
+              <idno type="RESEARCHERID">http://www.researcherid.com/rid/F-9309-2014</idno>
+              <idno type="IDREF">https://www.idref.fr/176878041</idno>
+              <idno type="ORCID">https://orcid.org/0000-0002-8935-5929</idno>
+              <idno type="GOOGLE SCHOLAR">https://scholar.google.fr/citations?user=6JwyVnoAAAAJ&amp;hl=fr</idno>
+              <idno type="RESEARCHERID">http://www.researcherid.com/rid/http://www.researcherid.com/rid/F-9309-2014</idno>
+              <affiliation ref="#struct-12568"/>
+            </author>
+            <author role="aut">
+              <persName>
+                <forename type="first">Rodolphe</forename>
+                <surname>Le Riche</surname>
+              </persName>
+              <email type="md5">83c100c4e9b599945b07df3d16dd606a</email>
+              <email type="domain">emse.fr</email>
+              <idno type="idhal" notation="string">rodolphe-le-riche</idno>
+              <idno type="idhal" notation="numeric">15545</idno>
+              <idno type="halauthorid" notation="string">23492-15545</idno>
+              <idno type="ORCID">https://orcid.org/0000-0002-3518-2110</idno>
+              <idno type="IDREF">https://www.idref.fr/084020288</idno>
+              <affiliation ref="#struct-490706"/>
+              <affiliation ref="#struct-492005"/>
+              <affiliation ref="#struct-29212"/>
+              <affiliation ref="#struct-174068"/>
+              <affiliation ref="#struct-441569"/>
+            </author>
+            <author role="aut">
+              <persName>
+                <forename type="first">Bruno</forename>
+                <surname>Soulier</surname>
+              </persName>
+              <email type="md5">2924408630a040048f091d405bfe1513</email>
+              <email type="domain">ens-paris-saclay.fr</email>
+              <idno type="idhal" notation="string">bruno-soulier</idno>
+              <idno type="idhal" notation="numeric">5134</idno>
+              <idno type="halauthorid" notation="string">11690-5134</idno>
+              <idno type="ORCID">https://orcid.org/0000-0001-8672-2896</idno>
+              <idno type="IDREF">https://www.idref.fr/077278909</idno>
+              <affiliation ref="#struct-247321"/>
+            </author>
+            <author role="aut">
+              <persName>
+                <forename type="first">Pierre-Alain</forename>
+                <surname>Boucard</surname>
+              </persName>
+              <email type="md5">24f4c211eeaf331140156d500331d603</email>
+              <email type="domain">ens-paris-saclay.fr</email>
+              <idno type="idhal" notation="string">pierre-alain-boucard</idno>
+              <idno type="idhal" notation="numeric">9502</idno>
+              <idno type="halauthorid" notation="string">36467-9502</idno>
+              <idno type="RESEARCHERID">http://www.researcherid.com/rid/D-3629-2015</idno>
+              <idno type="IDREF">https://www.idref.fr/057383200</idno>
+              <idno type="ORCID">https://orcid.org/0000-0001-6068-5599</idno>
+              <idno type="RESEARCHERID">http://www.researcherid.com/rid/http://www.researcherid.com/rid/D-3629-2015</idno>
+              <affiliation ref="#struct-247321"/>
+            </author>
+            <editor role="depositor">
+              <persName>
+                <forename>Luc</forename>
+                <surname>Laurent</surname>
+              </persName>
+              <email type="md5">5864ebb79deb6e7f930fc5bdad943da7</email>
+              <email type="domain">lecnam.net</email>
+            </editor>
+          </titleStmt>
+          <editionStmt>
+            <edition n="v1">
+              <date type="whenSubmitted">2017-05-22 09:41:46</date>
+            </edition>
+            <edition n="v2">
+              <date type="whenSubmitted">2017-09-10 00:30:41</date>
+            </edition>
+            <edition n="v3" type="current">
+              <date type="whenSubmitted">2019-01-06 18:20:28</date>
+              <date type="whenModified">2024-09-17 15:46:16</date>
+              <date type="whenReleased">2019-01-15 15:06:59</date>
+              <date type="whenProduced">2019</date>
+              <date type="whenEndEmbargoed">2019-01-06</date>
+              <ref type="file" target="https://hal-emse.ccsd.cnrs.fr/emse-01525674v3/document">
+                <date notBefore="2019-01-06"/>
+              </ref>
+              <ref type="file" subtype="author" n="1" target="https://hal-emse.ccsd.cnrs.fr/emse-01525674v3/file/paperHAL.pdf">
+                <date notBefore="2019-01-06"/>
+              </ref>
+            </edition>
+            <respStmt>
+              <resp>contributor</resp>
+              <name key="202114">
+                <persName>
+                  <forename>Luc</forename>
+                  <surname>Laurent</surname>
+                </persName>
+                <email type="md5">5864ebb79deb6e7f930fc5bdad943da7</email>
+                <email type="domain">lecnam.net</email>
+              </name>
+            </respStmt>
+          </editionStmt>
+          <publicationStmt>
+            <distributor>CCSD</distributor>
+            <idno type="halId">emse-01525674</idno>
+            <idno type="halUri">https://hal-emse.ccsd.cnrs.fr/emse-01525674</idno>
+            <idno type="halBibtex">laurent:emse-01525674</idno>
+            <idno type="halRefHtml">&lt;i&gt;Archives of Computational Methods in Engineering&lt;/i&gt;, 2019, 26 (1), pp.61-106. &lt;a target="_blank" href="https://dx.doi.org/10.1007/s11831-017-9226-3"&gt;&amp;#x27E8;10.1007/s11831-017-9226-3&amp;#x27E9;&lt;/a&gt;</idno>
+            <idno type="halRef">Archives of Computational Methods in Engineering, 2019, 26 (1), pp.61-106. &amp;#x27E8;10.1007/s11831-017-9226-3&amp;#x27E9;</idno>
+            <availability status="restricted">
+              <licence target="http://creativecommons.org/licenses/by/">Attribution</licence>
+            </availability>
+          </publicationStmt>
+          <seriesStmt>
+            <idno type="stamp" n="EMSE" corresp="INSTITUT-MINES-TELECOM">Ecole Nationale Supérieure des Mines de Saint-Etienne</idno>
+            <idno type="stamp" n="PRES_CLERMONT">Université de Clermont</idno>
+            <idno type="stamp" n="CNRS">CNRS - Centre national de la recherche scientifique</idno>
+            <idno type="stamp" n="ENS-CACHAN">Ecole Normale Supérieure de Cachan</idno>
+            <idno type="stamp" n="CNAM">Conservatoire National des Arts et Métiers</idno>
+            <idno type="stamp" n="FAYOL-ENSMSE" corresp="EMSE">FAYOL - Institut Henri Fayol</idno>
+            <idno type="stamp" n="LIMOS" corresp="PRES_CLERMONT">Laboratoire d'Informatique, de Modélisation et d'optimisation des Systèmes</idno>
+            <idno type="stamp" n="DEMO-ENSMSE" corresp="EMSE">FAYOL / DEMO : Décision en Entreprise : Modélisation, Optimisation</idno>
+            <idno type="stamp" n="LMT">Laboratoire de mécanique et technologie</idno>
+            <idno type="stamp" n="ACL-SF" corresp="PRES_CLERMONT">ACL en Sciences fondamentales</idno>
+            <idno type="stamp" n="TDS-MACS">Réseau de recherche en Théorie des Systèmes Distribués, Modélisation, Analyse et Contrôle des Systèmes</idno>
+            <idno type="stamp" n="UNIV-PARIS-SACLAY">Université Paris-Saclay</idno>
+            <idno type="stamp" n="ENS-CACHAN-SACLAY" corresp="UNIV-PARIS-SACLAY">ENS-CACHAN-SACLAY</idno>
+            <idno type="stamp" n="SORBONNE-UNIVERSITE">Sorbonne Université</idno>
+            <idno type="stamp" n="LMSSC-CNAM" corresp="CNAM">Laboratoire de mécanique des structures et des systèmes couplés</idno>
+            <idno type="stamp" n="SU-SCIENCES" corresp="SORBONNE-UNIVERSITE">Faculté des Sciences de Sorbonne Université</idno>
+            <idno type="stamp" n="INSTITUTS-TELECOM">composantes instituts telecom </idno>
+            <idno type="stamp" n="LMT-SACLAY" corresp="ENS-CACHAN-SACLAY">Laboratoire de mécanique et technologie</idno>
+            <idno type="stamp" n="SU-TI">Sorbonne Université - Texte Intégral</idno>
+            <idno type="stamp" n="FARMAN">Institut Farman</idno>
+            <idno type="stamp" n="ENS-PARIS-SACLAY">Ecole Normale Supérieure paris-Saclay</idno>
+            <idno type="stamp" n="GS-ENGINEERING">Graduate School Sciences de l'Ingénierie et des Systèmes</idno>
+            <idno type="stamp" n="CLERMONT-AUVERGNE-INP">Clermont Auvergne INP</idno>
+            <idno type="stamp" n="ALLIANCE-SU"> Alliance Sorbonne Université</idno>
+            <idno type="stamp" n="LMPS">Laboratoire de Mécanique Paris-Saclay</idno>
+            <idno type="stamp" n="TEST3-HALCNRS">TEST3-HALCNRS</idno>
+            <idno type="stamp" n="HESAM-CNAM" corresp="HESAM">Conservatoire National des Arts et Métiers - Hesam</idno>
+            <idno type="stamp" n="HESAM">Hesam</idno>
+            <idno type="stamp" n="INSTITUT-MINES-TELECOM">Institut Mines Telecom</idno>
+          </seriesStmt>
+          <notesStmt>
+            <note type="audience" n="2">International</note>
+            <note type="popular" n="0">No</note>
+            <note type="peer" n="1">Yes</note>
+          </notesStmt>
+          <sourceDesc>
+            <biblStruct>
+              <analytic>
+                <title xml:lang="en">An overview of gradient-enhanced metamodels with applications</title>
+                <author role="aut">
+                  <persName>
+                    <forename type="first">Luc</forename>
+                    <surname>Laurent</surname>
+                  </persName>
+                  <email type="md5">5864ebb79deb6e7f930fc5bdad943da7</email>
+                  <email type="domain">lecnam.net</email>
+                  <idno type="idhal" notation="string">luc-laurent</idno>
+                  <idno type="idhal" notation="numeric">826</idno>
+                  <idno type="halauthorid" notation="string">32468-826</idno>
+                  <idno type="RESEARCHERID">http://www.researcherid.com/rid/F-9309-2014</idno>
+                  <idno type="IDREF">https://www.idref.fr/176878041</idno>
+                  <idno type="ORCID">https://orcid.org/0000-0002-8935-5929</idno>
+                  <idno type="GOOGLE SCHOLAR">https://scholar.google.fr/citations?user=6JwyVnoAAAAJ&amp;hl=fr</idno>
+                  <idno type="RESEARCHERID">http://www.researcherid.com/rid/http://www.researcherid.com/rid/F-9309-2014</idno>
+                  <affiliation ref="#struct-12568"/>
+                </author>
+                <author role="aut">
+                  <persName>
+                    <forename type="first">Rodolphe</forename>
+                    <surname>Le Riche</surname>
+                  </persName>
+                  <email type="md5">83c100c4e9b599945b07df3d16dd606a</email>
+                  <email type="domain">emse.fr</email>
+                  <idno type="idhal" notation="string">rodolphe-le-riche</idno>
+                  <idno type="idhal" notation="numeric">15545</idno>
+                  <idno type="halauthorid" notation="string">23492-15545</idno>
+                  <idno type="ORCID">https://orcid.org/0000-0002-3518-2110</idno>
+                  <idno type="IDREF">https://www.idref.fr/084020288</idno>
+                  <affiliation ref="#struct-490706"/>
+                  <affiliation ref="#struct-492005"/>
+                  <affiliation ref="#struct-29212"/>
+                  <affiliation ref="#struct-174068"/>
+                  <affiliation ref="#struct-441569"/>
+                </author>
+                <author role="aut">
+                  <persName>
+                    <forename type="first">Bruno</forename>
+                    <surname>Soulier</surname>
+                  </persName>
+                  <email type="md5">2924408630a040048f091d405bfe1513</email>
+                  <email type="domain">ens-paris-saclay.fr</email>
+                  <idno type="idhal" notation="string">bruno-soulier</idno>
+                  <idno type="idhal" notation="numeric">5134</idno>
+                  <idno type="halauthorid" notation="string">11690-5134</idno>
+                  <idno type="ORCID">https://orcid.org/0000-0001-8672-2896</idno>
+                  <idno type="IDREF">https://www.idref.fr/077278909</idno>
+                  <affiliation ref="#struct-247321"/>
+                </author>
+                <author role="aut">
+                  <persName>
+                    <forename type="first">Pierre-Alain</forename>
+                    <surname>Boucard</surname>
+                  </persName>
+                  <email type="md5">24f4c211eeaf331140156d500331d603</email>
+                  <email type="domain">ens-paris-saclay.fr</email>
+                  <idno type="idhal" notation="string">pierre-alain-boucard</idno>
+                  <idno type="idhal" notation="numeric">9502</idno>
+                  <idno type="halauthorid" notation="string">36467-9502</idno>
+                  <idno type="RESEARCHERID">http://www.researcherid.com/rid/D-3629-2015</idno>
+                  <idno type="IDREF">https://www.idref.fr/057383200</idno>
+                  <idno type="ORCID">https://orcid.org/0000-0001-6068-5599</idno>
+                  <idno type="RESEARCHERID">http://www.researcherid.com/rid/http://www.researcherid.com/rid/D-3629-2015</idno>
+                  <affiliation ref="#struct-247321"/>
+                </author>
+              </analytic>
+              <monogr>
+                <idno type="halJournalId" status="VALID">38344</idno>
+                <idno type="issn">1134-3060</idno>
+                <idno type="eissn">1886-1784</idno>
+                <title level="j">Archives of Computational Methods in Engineering</title>
+                <imprint>
+                  <publisher>Springer Verlag</publisher>
+                  <biblScope unit="volume">26</biblScope>
+                  <biblScope unit="issue">1</biblScope>
+                  <biblScope unit="pp">61–106</biblScope>
+                  <date type="datePub">2019</date>
+                  <date type="dateEpub">2017-07-17</date>
+                </imprint>
+              </monogr>
+              <idno type="doi">10.1007/s11831-017-9226-3</idno>
+              <ref target="https://bitbucket.org/luclaurent/grenat" type="seeAlso"/>
+              <ref target="https://bitbucket.org/luclaurent/multidoe" type="seeAlso"/>
+            </biblStruct>
+          </sourceDesc>
+          <profileDesc>
+            <langUsage>
+              <language ident="en">English</language>
+            </langUsage>
+            <textClass>
+              <keywords scheme="author">
+                <term xml:lang="en">gradient-enhanced</term>
+                <term xml:lang="en">surrogate model</term>
+                <term xml:lang="en">metamodel</term>
+                <term xml:lang="en">cokriging</term>
+              </keywords>
+              <classCode scheme="acm" n="G.1.2.2">G.: Mathematics of Computing/G.1: NUMERICAL ANALYSIS/G.1.2: Approximation/G.1.2.2: Elementary function approximation</classCode>
+              <classCode scheme="acm" n="G.1.2.5">G.: Mathematics of Computing/G.1: NUMERICAL ANALYSIS/G.1.2: Approximation/G.1.2.5: Linear approximation</classCode>
+              <classCode scheme="acm" n="G.1.2.4">G.: Mathematics of Computing/G.1: NUMERICAL ANALYSIS/G.1.2: Approximation/G.1.2.4: Least squares approximation</classCode>
+              <classCode scheme="acm" n="G.1.2.9">G.: Mathematics of Computing/G.1: NUMERICAL ANALYSIS/G.1.2: Approximation/G.1.2.9: Special function approximations</classCode>
+              <classCode scheme="halDomain" n="info.info-mo">Computer Science [cs]/Modeling and Simulation</classCode>
+              <classCode scheme="halDomain" n="math.math-oc">Mathematics [math]/Optimization and Control [math.OC]</classCode>
+              <classCode scheme="halTypology" n="ART">Journal articles</classCode>
+              <classCode scheme="halOldTypology" n="ART">Journal articles</classCode>
+              <classCode scheme="halTreeTypology" n="ART">Journal articles</classCode>
+            </textClass>
+            <abstract xml:lang="en">
+              <p>Metamodeling, the science of modeling functions observed at a finite number of points, benefits from all auxiliary information it can account for. Function gradients are a common auxiliary information and are useful for predicting functions with locally changing behaviors. This article is a review of the main metamodels that use function gradients in addition to function values. The goal of the article is to give the reader both an overview of the principles involved in gradient-enhanced metamodels while also providing insightful formulations. The following metamodels have gradient-enhanced versions in the literature and are reviewed here: classical, weighted and moving least squares, Shepard weighting functions, and the kernel-based methods that are radial basis functions, kriging and support vector machines. The methods are set in a common framework of linear combinations between a priori chosen functions and coefficients that depend on the observations. The characteristics common to all kernel-based approaches are underlined. A new ν-GSVR metamodel which uses gradients is given. Numerical comparisons of the metamodels are carried out for approximating analytical test functions. The experiments are replicable, as they are performed with an opensource available toolbox. The results indicate that there is a trade-off between the better computing time of least squares methods and the larger versatility of kernel-based approaches.</p>
+            </abstract>
+          </profileDesc>
+        </biblFull>
+      </listBibl>
+    </body>
+    <back>
+      <listOrg type="structures">
+        <org type="laboratory" xml:id="struct-12568" status="VALID">
+          <idno type="IdRef">15551069X</idno>
+          <idno type="RNSR">199914495P</idno>
+          <orgName>Laboratoire de Mécanique des Structures et des Systèmes Couplés</orgName>
+          <orgName type="acronym">LMSSC</orgName>
+          <desc>
+            <address>
+              <addrLine>292, rue Saint Martin 75141 PARIS Cedex 03</addrLine>
+              <country key="FR"/>
+            </address>
+            <ref type="url">http://www.cnam.fr/lmssc/</ref>
+          </desc>
+          <listRelation>
+            <relation name="EA3196" active="#struct-300351" type="direct"/>
+          </listRelation>
+        </org>
+        <org type="laboratory" xml:id="struct-490706" status="OLD">
+          <idno type="IdRef">155645919</idno>
+          <idno type="RNSR">200212221E</idno>
+          <orgName>Laboratoire d'Informatique, de Modélisation et d'Optimisation des Systèmes</orgName>
+          <orgName type="acronym">LIMOS</orgName>
+          <date type="start">2017-01-01</date>
+          <date type="end">2020-12-31</date>
+          <desc>
+            <address>
+              <addrLine>Campus Universitaire des Cézeaux, 1 rue de la Chebarde, TSA 60125 / CS 60026, 63178 Aubière Cedex</addrLine>
+              <country key="FR"/>
+            </address>
+            <ref type="url">https://limos.fr/</ref>
+          </desc>
+          <listRelation>
+            <relation name="UMR6158" active="#struct-359750" type="direct"/>
+            <relation name="UMR6158" active="#struct-422708" type="direct"/>
+            <relation name="UMR6158" active="#struct-441569" type="direct"/>
+          </listRelation>
+        </org>
+        <org type="department" xml:id="struct-492005" status="VALID">
+          <orgName>Département Génie mathématique et industriel</orgName>
+          <orgName type="acronym">FAYOL-ENSMSE</orgName>
+          <desc>
+            <address>
+              <country key="FR"/>
+            </address>
+            <ref type="url">http://www.mines-stetienne.fr/recherche/departements/departement-genie-de-l-environnement-et-des-organisations/</ref>
+          </desc>
+          <listRelation>
+            <relation active="#struct-359750" type="direct"/>
+            <relation active="#struct-474920" type="direct"/>
+          </listRelation>
+        </org>
+        <org type="regrouplaboratory" xml:id="struct-29212" status="VALID">
+          <orgName>École des Mines de Saint-Étienne</orgName>
+          <orgName type="acronym">Mines Saint-Étienne MSE</orgName>
+          <desc>
+            <address>
+              <addrLine>158, Cours Fauriel - 42023 Saint Étienne cedex 2</addrLine>
+              <country key="FR"/>
+            </address>
+            <ref type="url">http://www.mines-stetienne.fr/</ref>
+          </desc>
+          <listRelation>
+            <relation active="#struct-302102" type="direct"/>
+          </listRelation>
+        </org>
+        <org type="laboratory" xml:id="struct-174068" status="VALID">
+          <orgName>Institut Henri Fayol</orgName>
+          <orgName type="acronym">FAYOL-ENSMSE</orgName>
+          <desc>
+            <address>
+              <addrLine>158 cours Fauriel 42023 Saint-Etienne Cedex 2</addrLine>
+              <country key="FR"/>
+            </address>
+          </desc>
+          <listRelation>
+            <relation active="#struct-29212" type="direct"/>
+            <relation active="#struct-302102" type="indirect"/>
+          </listRelation>
+        </org>
+        <org type="regroupinstitution" xml:id="struct-441569" status="VALID">
+          <idno type="IdRef">02636817X</idno>
+          <idno type="ISNI">0000000122597504</idno>
+          <idno type="ROR">https://ror.org/02feahw73</idno>
+          <orgName>Centre National de la Recherche Scientifique</orgName>
+          <orgName type="acronym">CNRS</orgName>
+          <date type="start">1939-10-19</date>
+          <desc>
+            <address>
+              <country key="FR"/>
+            </address>
+            <ref type="url">https://www.cnrs.fr/</ref>
+          </desc>
+        </org>
+        <org type="laboratory" xml:id="struct-247321" status="OLD">
+          <orgName>Laboratoire de Mécanique et Technologie</orgName>
+          <orgName type="acronym">LMT</orgName>
+          <date type="start">2018-01-01</date>
+          <date type="end">2019-12-31</date>
+          <desc>
+            <address>
+              <addrLine>Bât. Léonard de Vinci 61 Av du président Wilson 94235 CACHAN CEDEX</addrLine>
+              <country key="FR"/>
+            </address>
+            <ref type="url">http://www.lmt.ens-cachan.fr/</ref>
+          </desc>
+          <listRelation>
+            <relation active="#struct-6862" type="direct"/>
+            <relation name="UMR8535" active="#struct-441569" type="direct"/>
+          </listRelation>
+        </org>
+        <org type="institution" xml:id="struct-300351" status="VALID">
+          <idno type="IdRef">027404978</idno>
+          <idno type="ISNI">0000000121690459</idno>
+          <idno type="ROR">https://ror.org/0175hh227</idno>
+          <orgName>Conservatoire National des Arts et Métiers [CNAM]</orgName>
+          <orgName type="acronym">CNAM</orgName>
+          <desc>
+            <address>
+              <country key="FR"/>
+            </address>
+            <ref type="url">http://www.cnam.fr/</ref>
+          </desc>
+        </org>
+        <org type="institution" xml:id="struct-359750" status="VALID">
+          <idno type="IdRef">028028694</idno>
+          <orgName>Ecole Nationale Supérieure des Mines de St Etienne</orgName>
+          <orgName type="acronym">ENSM ST-ETIENNE</orgName>
+          <date type="start">1816-01-01</date>
+          <desc>
+            <address>
+              <addrLine>158 Cour Fauriel, 42100 Saint-Étienne</addrLine>
+              <country key="FR"/>
+            </address>
+            <ref type="url">https://www.mines-stetienne.fr/</ref>
+          </desc>
+        </org>
+        <org type="institution" xml:id="struct-422708" status="OLD">
+          <idno type="IdRef">196200032</idno>
+          <idno type="ROR">https://ror.org/01a8ajp46</idno>
+          <orgName>Université Clermont Auvergne [2017-2020]</orgName>
+          <orgName type="acronym">UCA  [2017-2020]</orgName>
+          <date type="start">2017-01-01</date>
+          <date type="end">2020-12-31</date>
+          <desc>
+            <address>
+              <addrLine>49, bd François-Mitterrand / CS 60032 / 63001 Clermont-Ferrand Cedex 1</addrLine>
+              <country key="FR"/>
+            </address>
+            <ref type="url">http://www.uca.fr/</ref>
+          </desc>
+        </org>
+        <org type="institution" xml:id="struct-474920" status="INCOMING">
+          <orgName>Institut Henri Fayol</orgName>
+          <desc>
+            <address>
+              <country key="FR"/>
+            </address>
+          </desc>
+        </org>
+        <org type="regroupinstitution" xml:id="struct-302102" status="VALID">
+          <idno type="ROR">https://ror.org/025vp2923</idno>
+          <orgName>Institut Mines-Télécom [Paris]</orgName>
+          <orgName type="acronym">IMT</orgName>
+          <date type="start">2012-03-01</date>
+          <desc>
+            <address>
+              <addrLine>37-39 Rue Dareau, 75014 Paris</addrLine>
+              <country key="FR"/>
+            </address>
+            <ref type="url">http://www.mines-telecom.fr/</ref>
+          </desc>
+        </org>
+        <org type="institution" xml:id="struct-6862" status="VALID">
+          <orgName>École normale supérieure - Cachan</orgName>
+          <orgName type="acronym">ENS Cachan</orgName>
+          <desc>
+            <address>
+              <addrLine>61, avenue du Président Wilson - 94230 Cachan</addrLine>
+              <country key="FR"/>
+            </address>
+            <ref type="url">http://www.ens-cachan.fr/</ref>
+          </desc>
+        </org>
+      </listOrg>
+    </back>
+  </text>
+</TEI>

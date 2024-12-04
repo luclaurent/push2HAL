@@ -1,4 +1,5 @@
 import pytest
+import time
 import tempfile
 import os
 import contextlib as ctl
@@ -8,6 +9,10 @@ from push2HAL import default as dflt
 
 listDirectAccessFormat = list(dflt.HAL_DIRECT_ACCESS_FORMATS.values())
 
+@pytest.fixture(autouse=True)
+def slow_down_tests():
+    yield
+    time.sleep(1)
 
 def test_doiInHAL():
     res = lib.checkDoiInHAL('10.1007/s11831-017-9226-3')
@@ -40,6 +45,25 @@ def test_exportTypeFromApproxTitle(typeExport):
                           returnFields=['doi','title','uri_s','producedDate_s','docType_s','authFullName_s'],
                           returnFormat=typeExport)
     assert res is not None
+
+@pytest.mark.parametrize("typeExport", [None,*dflt.HAL_API_ALLOWED_RETURN_FORMATS_DOC])
+def test_exportTypeFromHALid(typeExport):
+    api = lib.APIHAL()
+    res = api.search(query={'doc_idhal':'emse-01525674'},
+                        #   returnFields=['doc_idhal'],
+                          returnFormat=typeExport)
+    # assert res[0].get('uri_s')[0:-2] is 'https://hal-emse.ccsd.cnrs.fr/emse-01525674'
+    assert res is not None
+
+def test_basicComparison():
+    api = lib.APIHAL()
+    res_api = api.search(query={'doc_idhal':'emse-01525674'},
+                        #   returnFields=['doc_idhal'],
+                          returnFormat="xml-tei")
+    res_da = lib.directAccess(hal_id='emse-01525674',
+                            type='xml-tei')
+    # assert res[0].get('uri_s')[0:-2] is 'https://hal-emse.ccsd.cnrs.fr/emse-01525674'
+    assert res_api is not None
 
 @pytest.mark.parametrize("typeExport", ["json"])
 def test_exportFromCollection(typeExport):

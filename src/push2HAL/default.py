@@ -677,6 +677,7 @@ HAL_API_ALLOWED_QUERY_TYPES_DOC = {
 }
 HAL_API_ALLOWED_RETURN_FIELDS_DOC = {
     "abstract_exact": "abstract_s",
+    "abstract": "abstract_s",
     "classification_acm_2012": "acm2012_s",
     "classification_acm": "acm_s",
     "acronym_anr_exact": "anrProjectAcronym_s",

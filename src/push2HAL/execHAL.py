@@ -31,29 +31,13 @@ def runJSON2HAL(
     """execute using arguments"""
     exitStatus = os.EX_CONFIG
     # activate verbose mode
-    logger.remove() #remove the old handler. Else, the old one will work along with the new one you've added below'
-    if verbose:
-        logger.add(sys.stderr, level="DEBUG") 
-    else:
-        logger.add(sys.stderr, level="INFO") 
+    verboseMode(verbose) 
 
     logger.info("Run JSON2HAL")
     logger.info("")
 
     # activate production mode
-    serverType = "preprod"
-    testMode = True
-    if prod == "prod":
-        logger.info("Execution mode: use production server (USE WITH CAUTION))")
-        serverType = "prod"
-        testMode = False
-    elif prod == "test":
-        logger.info("Execution mode: use production server (dry-run))")
-        serverType = "prod"
-        testMode = True
-    else:
-        logger.info("Dryrun mode: use preprod server")
-        testMode = False
+    serverType,testMode = selectServerMode(prod)
 
     #
     json_path = jsonContent
@@ -61,6 +45,9 @@ def runJSON2HAL(
     if type(jsonContent) is dict:
         dataJSON = jsonContent
         new_xml = dflt.DEFAULT_UPLOAD_FILE_NAME_XML
+        dirPath = os.path.join(os.getcwd(), "tmp")
+        logger.debug("Directory: {}".format(dirPath))
+        os.mkdirs(dirPath, exist_ok=True)
     elif os.path.isfile(json_path):
         logger.debug("JSON file: {}".format(json_path))
         dirPath = os.path.dirname(json_path)
@@ -120,7 +107,129 @@ def runJSON2HAL(
     # upload to HAL
     if credentials:
         id_hal = lib.upload2HAL(file, 
-                                payload=payload, 
+                                headers=payload,  
+                                credentials=credentials, 
+                                server=serverType)
+        return lib.manageError(id_hal)
+    else:
+        logger.error("No provided credentials")
+        exitStatus = os.EX_CONFIG
+        return exitStatus
+    
+def updateHAL(
+    data={},
+    pdf_path = None,
+    verbose=False,
+    prod="preprod",
+    credentials=None,
+    completion=None,
+    halid=None,
+    idhal=None
+):
+    """ Update an existing HAL entry based on halid and data """
+    exitStatus = os.EX_CONFIG
+    
+    if len(data) == 0 or halid is None:
+        logger.error("No data or halid provided")
+        exitStatus = os.EX_SOFTWARE
+        return exitStatus
+
+    # activate verbose mode
+    verboseMode(verbose)
+
+    logger.info("Run updateHAL")
+    logger.info("")
+
+    # activate production mode
+    serverType,testMode = selectServerMode(prod)
+    
+    if not halid:
+        logger.error("No halid provided")
+        exitStatus = os.EX_SOFTWARE
+        return exitStatus
+    
+    # get data from HAL
+    api = libAPI.APIHAL()
+    tei_content = api.search(query={"doc_idhal": halid},
+                                 returnFormat="xml-tei")
+    if tei_content is None:
+        logger.error("No data found for halid: {}".format(halid))
+        exitStatus = os.EX_SOFTWARE
+        return exitStatus
+    else:
+        tei_content = tei_content[0]
+    
+    # update TEI file
+    jsonContent = data
+    json_path = data
+    new_xml = None
+    if type(jsonContent) is dict:
+        dataJSON = jsonContent
+        new_xml = dflt.DEFAULT_UPLOAD_FILE_NAME_XML
+        dirPath = os.path.join(os.getcwd(), "tmp")
+        logger.debug("Directory: {}".format(dirPath))
+        os.makedirs(dirPath, exist_ok=True)
+    elif os.path.isfile(json_path):
+        logger.debug("JSON file: {}".format(json_path))
+        dirPath = os.path.dirname(json_path)
+        logger.debug("Directory: {}".format(dirPath))
+        # open and load json file
+        f = open(json_path, "r")
+        # Reading from file
+        dataJSON = json.loads(f.read())
+        new_xml = os.path.basename(json_path).replace(".json", ".xml")
+    else:
+        logger.error("JSON file not found")
+        exitStatus = os.EX_OSFILE
+        return exitStatus
+
+    # build XML tree from json
+    xmlData = lib.buildXML(dataJSON,
+                           tei_content.getroottree().getroot())
+
+    # add PDF file if provided    
+    if dataJSON.get("file", None):
+        # file directly found
+        pdf_path = dataJSON.get("file", None)
+        if not os.path.isfile(pdf_path):
+            # file not found, search in the same directory
+            pdf_path = os.path.join(dirPath, dataJSON["file"])
+        #
+        if os.path.isfile(pdf_path):
+            logger.debug("PDF file: {}".format(pdf_path))
+        else:
+            logger.error("PDF file not found")
+            exitStatus = os.EX_OSFILE
+            return exitStatus
+    # deal with specific upload options
+    options = dict()
+    if completion:
+        logger.info(
+            "Specific completion option(s) will be used: {}".format(completion)
+        )
+        options["completion"] = completion
+    if idhal:
+        logger.info("Deposit on behalf of: {}".format(idhal))
+        options["idFrom"] = idhal
+    if testMode:
+        options["testMode"] = "1"
+    else:
+        options["testMode"] = "0"
+    # prepare payload to upload to HAL
+    file, payload = lib.preparePayload(
+        xmlData,
+        pdf_path,
+        dirPath,
+        xmlFileName=new_xml,
+        hal_id=None,
+        options=options,
+    )
+
+    # upload to HAL
+    if credentials:
+        id_hal = lib.upload2HAL(file, 
+                                headers=payload, 
+                                hal_id=halid,
                                 credentials=credentials, 
                                 server=serverType)
         return lib.manageError(id_hal)
@@ -143,27 +252,13 @@ def runPDF2HAL(
     """execute using arguments"""
     exitStatus = os.EX_CONFIG
     # activate verbose mode
-    logger.remove() #remove the old handler. Else, the old one will work along with the new one you've added below'
-    if verbose:
-        logger.add(sys.stderr, level="DEBUG") 
-    else:
-        logger.add(sys.stderr, level="INFO") 
+    verboseMode(verbose)
 
     logger.info("Run PDF2HAL")
     logger.info("")
 
     # activate production mode
-    serverType = "preprod"
-    testMode = False
-    if prod == "prod":
-        logger.info("Execution mode: use production server (USE WITH CAUTION))")
-        serverType = "prod"
-    elif prod == "test":
-        logger.info("Execution mode: use production server (dry-run))")
-        serverType = "prod"
-        testMode = True
-    else:
-        logger.info("Dryrun mode: use preprod server")
+    serverType,testMode = selectServerMode(prod)
 
     # check if file exists
     if os.path.isfile(pdf_path):
@@ -219,16 +314,19 @@ def runPDF2HAL(
         logger.info("Provided HAL_id: {}".format(halid))
         hal_id = halid
         # get data from HAL
-        api = libAPI.APIHAL()
-        dataHAL = api.search(query={"halId_s": hal_id}, 
-                             returnFields=['title_s','halId_s','author_full_name_exact'],
-                             returnFormat="json")
+        # api = libAPI.APIHAL()
+        # dataHAL = api.search(query={"halId_s": hal_id}, 
+        #                      returnFields=['title_s','halId_s','author_full_name_exact'],
+        #                      returnFormat="json")
+        objHAL = libAPI.directAccess(hal_id=hal_id, 
+                                   type="json")
+        dataHAL = objHAL.data
         
         if len(dataHAL) > 0:
             logger.debug("Data from HAL: {}".format(dataHAL))
-            selected_title = dataHAL[0].get("title_s", "N/A")
-            selected_author = dataHAL[0].get("authFullName_s", "N/A")
-            hal_id = dataHAL[0].get("halId_s", None)
+            selected_title = dataHAL.get("title_s", "N/A")
+            selected_author = dataHAL.get("authFullName_s", "N/A")
+            hal_id = dataHAL.get("halId_s", None)
 
             logger.info("Title: {}".format(selected_title))
             logger.info("Author: {}".format(selected_author))
@@ -241,11 +339,15 @@ def runPDF2HAL(
     if hal_id:
         # Download TEI file
         api = libAPI.APIHAL()
-        tei_content = api.search(query={"halId_s": hal_id},
+        tei_content = api.search(query={"doc_idhal": hal_id},
                                  returnFormat="xml-tei")
         # tei_content = lib.getDataFromHAL(
         #     txtsearch=hal_id, typeI="docId", typeDB="article", typeR="xml-tei"
         # )
+        
+        # objHAL = libAPI.directAccess(hal_id=hal_id, 
+        #                                type="xml-tei")
+        # tei_content = objHAL.data
 
         if len(tei_content) > 0:
             # write TEI file
@@ -279,7 +381,7 @@ def runPDF2HAL(
             # upload to HAL
             if credentials:
                 retStatus = lib.upload2HAL(file, 
-                                           payload, 
+                                           headers=payload,  
                                            hal_id=hal_id,
                                            credentials=credentials, 
                                            server=serverType)
@@ -300,3 +402,28 @@ def runPDF2HAL(
         return exitStatus
 
     return exitStatus
+
+
+def verboseMode(verbose=False):
+    # activate verbose mode
+    logger.remove() #remove the old handler. Else, the old one will work along with the new one you've added below'
+    if verbose:
+        logger.add(sys.stderr, level="DEBUG") 
+    else:
+        logger.add(sys.stderr, level="INFO") 
+
+def selectServerMode(prod="test"):
+    serverType = "preprod"
+    testMode = True
+    if prod == "prod":
+        logger.info("Execution mode: use production server (USE WITH CAUTION))")
+        serverType = "prod"
+        testMode = False
+    elif prod == "test":
+        logger.info("Execution mode: use production server (dry-run))")
+        serverType = "prod"
+        testMode = True
+    else:
+        logger.info("Dryrun mode: use preprod server")
+        testMode = False
+    return serverType, testMode
