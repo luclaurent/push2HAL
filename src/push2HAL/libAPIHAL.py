@@ -293,7 +293,7 @@ class APIHALbase(ABC):
         # execute request
         data = self.getUrlRequest(paramsCopy, raw=True)
         # get number of results
-        self.nbElements = data.json().get("response", {}).get("numFound", [])
+        self.nbElements = data.json().get("response", {}).get("numFound", 0)
         return self.nbElements
         
     def getUrlRequest(self, params=None, raw=False):
@@ -324,7 +324,7 @@ class APIHALbase(ABC):
         # get all results
         rows = 0
         allResultsRaw = []
-        while rows < self.maxResults:
+        while rows < nbResults:
             params["start"] = rows
             params["rows"] = self.maxResults
             allResultsRaw.append(self.getUrlRequest(params))

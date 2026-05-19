@@ -1301,7 +1301,7 @@ HAL_API_ALLOWED_QUERY_TYPES_STRUCTURE = {
     "code_unit_exact": "code_s",
     "code_unit_ex_unsensitive": "code_sci",
     "code_unit_unsensitive": "code_t",
-    "code_unit_": "code_t",
+    "code_unit": "code_t",
     "country_exact": "country_s",
     "date_last_indexed": "dateLastIndexed_tdate",
     "id": "docid",

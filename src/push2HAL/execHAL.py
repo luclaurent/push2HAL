@@ -47,7 +47,7 @@ def runJSON2HAL(
         new_xml = dflt.DEFAULT_UPLOAD_FILE_NAME_XML
         dirPath = os.path.join(os.getcwd(), "tmp")
         logger.debug("Directory: {}".format(dirPath))
-        os.mkdirs(dirPath, exist_ok=True)
+        os.makedirs(dirPath, exist_ok=True)
     elif os.path.isfile(json_path):
         logger.debug("JSON file: {}".format(json_path))
         dirPath = os.path.dirname(json_path)

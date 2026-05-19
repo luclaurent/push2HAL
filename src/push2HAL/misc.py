@@ -195,6 +195,8 @@ def adaptH(inStr):
             return "true"
         else:
             return "false"
+    elif isinstance(inStr, list):
+        return ",".join(inStr)
     else:
         return inStr
     

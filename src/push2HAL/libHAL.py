@@ -320,7 +320,7 @@ def setAuthors(inTree, authors, clear=False):
                 )
             )
             attr_built = {"role": "aut"}
-        nAuthors.append(addElementinTree(inTree, None, "author", attr_unique=attr_built))
+        nAuthors.append(addElementinTree(inTree, None, "author", attr_unique=attr_built,force=True))
         persName = addElementinTree(nAuthors[-1], None, "persName")
         _ = addElementinTree(persName, nameFormated[0], "forename", attr_unique={"type": "first"})
         if len(nameFormated) > 2:
@@ -648,38 +648,36 @@ def setIDS(inTree, data, clear=False):
     return lID
 
 
-def setConference(inTree, data):
+def setConference(inTree, data=None, clear=False):
     """Set a conference in XML"""
-    idM = etree.SubElement(inTree, TEI + "meeting")
+    if not data:
+        logger.warning("No conference provided")
+        return None
+    if clear:
+        removeElementinTree(inTree, "meeting")
+    idM = addElementinTree(inTree,None,"meeting")
     if data.get("title"):
-        idT = etree.SubElement(idM, TEI + "title")
-        idT.text = data.get("title")
+        idT = addElementinTree(idM,data.get("title"),"title")
     if data.get("start"):
-        idT = etree.SubElement(idM, TEI + "date")
-        idT.set("type", "start")
-        idT.text = data.get("start")
+        idT = addElementinTree(idM,data.get("start"),"date",
+                               attr_unique={"type": "start"})
     if data.get("end"):
-        idT = etree.SubElement(idM, TEI + "date")
-        idT.set("type", "end")
-        idT.text = data.get("end")
+        idT = addElementinTree(idM,data.get("end"),"date",
+                               attr_unique={"type": "end"})
     if data.get("location"):
-        idT = etree.SubElement(idM, TEI + "settlement")
-        idT.text = data.get("location")
+        idT = addElementinTree(idM,data.get("location"),"settlement")
     if data.get("country"):
-        idT = etree.SubElement(idM, TEI + "country")
-        idT.set("key", m.getAlpha2Country(data.get("country")))
-        idT.text = data.get("location")
+        idT = addElementinTree(idM,data.get("country"),"country",
+                               attr_unique={"key": m.getAlpha2Country(data.get("country"))})
     if data.get("organizer"):
-        idM = etree.SubElement(inTree, TEI + "respStmt")
-        idT = etree.SubElement(idM, TEI + "resp")
-        idT.text = "conferenceOrganizer"
+        idM = addElementinTree(inTree,None,"respStmt")
+        idT = addElementinTree(idM,"conferenceOrganizer","resp")
         #
         dataORG = data.get("organizer")
         if not isinstance(dataORG, list):
             dataORG = [dataORG]
-            for d in dataORG:
-                idT = etree.SubElement(idM, TEI + "name")
-                idT.text = d
+        for d in dataORG:
+            idT = addElementinTree(idM,d,"name",force=True)
 
     return []
 
@@ -1018,9 +1016,14 @@ def setStructure(inTree, data, id=None):
         logger.warning(
             "No id for structure {}: force manual {}".format(data.get("name", None), id)
         )
-    idS = addElementinTree(inTree, None, "org",
-                        attr_unique={"type": orgType,
-                                    dflt.DEFAULT_XML_LANG + "id": "localStruct-" + data.get("id", str(id))})
+        data["id"] = id
+        idS = addElementinTree(inTree, None, "org",
+                            attr_unique={"type": orgType,
+                                        dflt.DEFAULT_XML_LANG + "id": "localStruct-" + data.get("id", str(id))})
+    else:
+        idS = addElementinTree(inTree, None, "org",
+                            attr_unique={"type": orgType,
+                                        dflt.DEFAULT_XML_LANG + "id": data.get("id")})
     idD = addElementinTree(idS, data.get("name"), "orgName")
     if data.get("acronym", None):
         idD = addElementinTree(idS, data.get("acronym"), "orgName", 
@@ -1242,9 +1245,9 @@ def addElementinTree(inTree, data, tag,
     if clear:
         inTree.remove(elt)
     # many elements
-    if len(elt) > 1:
+    if len(elt) > 1 and not force:
         logger.warning("Many elements found: {}".format(elt))
-    elif len(elt) == 1:
+    elif len(elt) == 1 and not force:
         elt = elt[0]
     else:
         elt = None
@@ -1274,6 +1277,13 @@ def removeElementinTree(inTree, tag, attr=None, nattr=None, namespace=TEI):
         inTree.remove(e)
     return inTree
     
+def cleanXMLtreeHAL(inTree):
+    """ Remove empty HAL elements """
+    elts = getElement(inTree, "series")
+    if len(elts) > 0:
+        for e in elts:
+            if len(e) == 0:
+                inTree.remove(e)
 
 
 def buildXML(data, inTree=None):
@@ -1343,20 +1353,28 @@ def buildXML(data, inTree=None):
     monogr = addElementinTree(biblStruct, None, "monogr")
     setIDS(monogr, data.get("ID", None),
            clear='ID' in data.get('remove',[]))
+    # add conference data
+    if data.get("conf", None):
+        logger.debug("Add conference")
+        setConference(monogr, data.get("conf", None),
+                clear='conf' in data.get('remove',[]))
     # add bib information relative to document
     logger.debug("Add situation value for document")
     imprint = addElementinTree(monogr, None, "imprint", 
                                clear='infoDoc' in data.get('remove',[]))
     setInfoDoc(imprint, data.get("infoDoc", None))
+    
     # add series description for book, proceedings...
     logger.debug("Add series description")
-    series = addElementinTree(biblStruct, None, "series",
-                              clear='series' in data.get('remove',[]))
-    setSeries(series, data.get("series", None))
+    if data.get("series", None):
+        series = addElementinTree(biblStruct, None, "series",
+                                clear='series' in data.get('remove',[]))
+        setSeries(series, data.get("series", None))
     # add external ref of document
     logger.debug("Add external reference(s)")
     setRef(biblStruct, data.get("extref", None),
            clear='extref' in data.get('remove',[]))
+    
     # new section
     profileDesc = addElementinTree(biblFull, None, "profileDesc")
     # add language
@@ -1386,5 +1404,9 @@ def buildXML(data, inTree=None):
     logger.debug("Add structure(s)")
     setStructures(back, data.get("structures", None), 
                   clear='structures' in data.get('remove',[]))
+    
+    # clean XML tree
+    logger.debug("Clean XML tree")
+    cleanXMLtreeHAL(tei)
 
     return tei

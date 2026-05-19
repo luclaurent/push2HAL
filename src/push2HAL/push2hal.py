@@ -43,10 +43,10 @@ def start():
     parserA = subparsers.add_parser('create', help='Creation of new note on HAL based on a JSON file')
     parserA.add_argument('json_file', help='Path to the JSON file')
     parserA.add_argument('-k','--check', help='Check if the note already exists in HAL',action='store_true')
-    parserA.add_argument('-cc','--complete', help='Run completion (use grobid, idext or affiliation or list of theme spearated by comma)')
+    parserA.add_argument('-cc','--complete', help='Run completion (use grobid, idext or affiliation or list of them spearated by comma)')
     # create the parser for the "update" command
     parserB = subparsers.add_parser('update', help='Update an existing note in HAL (many fields)')
-    parserB.add_argument('-cc','--complete', help='Run completion (use grobid, idext or affiliation or list of theme spearated by comma)')
+    parserB.add_argument('-cc','--complete', help='Run completion (use grobid, idext or affiliation or list of them spearated by comma)')
     # create the parser for the "pdf" command
     parserC = subparsers.add_parser('pdf', help='Add a PDF file to an existing note in HAL')
     parserC.add_argument('pdf_file', help='Path to the PDF file')
