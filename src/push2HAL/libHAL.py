@@ -1286,6 +1286,13 @@ def cleanXMLtreeHAL(inTree):
                 inTree.remove(e)
 
 
+def createHALelt(typeDoc, data=None):
+    """Factory: instantiate the right HALelt subclass for a given HAL type string.
+    Delegates to HALelt.from_type() using a lazy import to avoid circular imports."""
+    from . import elementHAL as elt
+    return elt.HALelt.from_type(typeDoc, data)
+
+
 def buildXML(data, inTree=None):
     """Build the XML file from data"""
     logger.debug("Open XML tree with namespace")
